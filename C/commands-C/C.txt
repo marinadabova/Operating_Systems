@@ -1,0 +1,172 @@
+Помощни команди:
+C files, input,output
+
+malloc(3)- динамично заделяне на памет
+накрая е хубаво да се освобождава
+
+malloc(3) 	void *malloc(size_t size);
+free(3) 	void free(void *ptr);
+
+
+Системни примитиви
+man man - секция 3, Library calls (functions within program libraries)
+* exit(3)
+man man - секция 2, System calls (functions provided by the kernel)
+fopen и fread да не се ползват
+
+
+open(2) 	
+int open(const char *pathname, int flags);
+приема пътя, флагове(за какво ще ползваме файла), mode(perm)
+Отваря файл, специфицират от pathname-а
+
+Ако не съществува, може опционално да се създаде от open, ако O_CREATE е специфициран като флаг
+open връща file descriptor
+
+flag-а трябва да съдържа един от следните access modes:
+O_RDONLY, O_WRONLY, O_RDWR (read-only, write-only, read/write, respectively)
+
+file creation flags:
+O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL,  O_NOCTTY,  O_NOFOLLOW,O_TMPFILE,  and  O_TRUNC. 
+
+files status flags:
+O_APPEND
+O_ASYNC
+....
+
+
+open (file, O_CREAT| O_RDONLY)
+връща file дескриптор, който ..
+
+При успех, връща файловд дескриптор, при неуспех -1
+openat(), creat()
+
+
+close(2) 
+int close(int fd);
+подаваме файловия дескриптор, за да затворим
+Затваряме файлвод дескриптор, така че той да не реферира към файл и може да се преизползва.
+
+При успех връща 0
+При неуспех- -1
+
+
+read(2)
+ssize_t read(int fd, void *buf, size_t count);
+
+Подаваме файлов дескриптор, буфер, размерът, с който да пише
+Чрез read може да кажем чети символ по символ, тн
+Четем от file descriptor
+
+Четем до броя байтове(count), който сме подали от файлов дескриптор(fd) в буфера стартиращ от подадения буфер(buf)
+( read()  attempts  to read up to count bytes from file descriptor fd into the buffer starting at buf.)
+
+
+#include <unistd.h>   -библиотека
+
+Ако count е 0, то може да има грешки,а ако не засича грешки,то read() връща 0 и няма друг ефект
+
+При успех връща броя на прочетените байтове(0 значи края на файла), а позицията на файла се придвижва напред с това число.
+При грешка -1
+
+
+
+write(2) 
+ssize_t write(int fd, const void *buf, size_t count);
+
+write() пише до броя на байтове (count) от буфера, започвайки от buf(buf) към файла, посочен от файловия дескриптор (fd)
+
+При успех връща броя на записаните байтове (връщат ssize_t)
+При неуспех/грешка - -1
+
+write(2,"fhfjdhfh",33); -изпринти на stderr текста–2ката го показва
+
+!!!да се проверява дали завършват успешно read  и write!!
+
+
+while(read(fd1,&c,1) ==1){
+   if write(..)==1 //proverkata
+	write(fd2,&c,1);
+}
+
+
+
+
+fprintf(3)
+
+#include <stdio.h>    -библиотека
+
+Принтира на подадения output stream
+
+printf() принтира на stdout
+drpintf() е същото като frpintf(), но принтира на fd
+
+dprintf =!= write --с write трябва да се конвертира, а dprintf е по-лесно за числа
+в повечето зад се използва write
+
+!!комбиниране на 2-те е подвеждащо
+write не използва буфериране, а другото използва
+
+
+int main(int argc, char* argv[])
+
+argc е integer, броя на редовете команди
+(the number of command-line arguments passed to the program, 
+including the program name itself)
+./myprogram arg1 arg2 arg3 -> argc=4
+
+argv е масив от низове
+(This is an array of strings that contains the command-line arguments passed to the program. 
+The first element of the array (argv[0]) is a string that contains the name of the program, 
+and the remaining elements (argv[1], argv[2], etc.) 
+are strings that contain the other command-line arguments.)
+
+err(3)
+Връща номер на грешката
+Всичко изчиства
+#include <err.h>    -библиотека
+
+
+void err(int eval, const char *fmt, ...);
+void errx(int eval, const char *fmt, ...);
+
+eval - exit status
+fmt- format string for the error message
+
+err VS errx 
+
+err -> system error message
+err(1, "some_function failed");
+err(EXIT_FAILURE, "%s", file_name);
+
+errx -> при грешка в логиката?
+не добавя съобщението за системната грешка към изхода.
+Следователно аргументът fmt трябва да включва всички необходими подробности за грешката.
+errx(1, "some_function failed: %s", strerror(errno));
+errx(EXIT_FAILURE, "too early, wait until %s",start_time_string);
+
+
+void warn()- предупреждение, изпринтва само, НЕ приключва
+
+void warn(const char *fmt, ...);
+void warnx(const char *fmt, ...);
+
+!Да се ползва err!
+
+
+
+lseek(2)
+Когато искаме да изместим пойнтъра
+препозициониране на отместването на файла за четене/запис
+
+#include <unistd.h>   -библиотека
+
+
+off_t lseek(int fd, off_t offset, int whence);
+препозиционира отместването на файла с файлов дескриптор fd, към аргумента offset, според посоченото отместване (whence)
+
+SEEK_SET
+SEEK_CUR
+SEEK_END
+
+lseek() позволява отместването на файла да бъде зададено след края на файл

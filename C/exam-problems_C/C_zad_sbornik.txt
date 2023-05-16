@@ -1,0 +1,2822 @@
+зад.49
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <err.h>
+
+int main(int argc, char* argv[]){
+
+        if (argc != 2){
+                errx(1, "We need one argument!");
+        }
+
+        int fd = open(argv[1], O_RDWR);
+        if(fd < 0){
+                err(2, "Error opening the file!");
+        }
+
+        uint64_t countingSort[256];
+
+        for(int i = 0; i < 256; i++){
+                countingSort[i] = 0;
+        }
+
+        uint8_t buf;
+        ssize_t bytes_read;
+        while( (bytes_read = read(fd, &buf, sizeof(uint8_t))) > 0 ){
+                countingSort[buf]++;
+        }
+
+        if(bytes_read == -1){
+                err(3, "Error reading!");
+        }
+
+        lseek(fd, 0, SEEK_SET);
+
+        for(int i = 0; i < 256; i++){
+                while (countingSort[i] > 0){
+                        if(write(fd, &i, sizeof(uint8_t)) < 1){
+                                err(4, "Error writing!");
+                        }
+
+                        countingSort[i]--;
+                }
+        }
+
+        close(fd);
+
+        exit(0);
+}
+
+
+
+зад.50
+
+#include <stdint.h>
+#include <err.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+
+
+int main(int argc, char* argv[]){
+        if(argc != 4){
+                errx(1, "We need 3 arguments!");
+        }
+
+        struct pair {
+                uint32_t x;
+                uint32_t y;
+        };
+
+        struct pair data;
+
+        struct stat st;
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat file!");
+        }
+
+        if(st.st_size % (2 * sizeof(uint32_t)) != 0){
+                errx(3, "File1 is not in our format");
+        }
+
+        if(stat(argv[2], &st) < 0){
+                err(2, "Error stat file");
+        }
+
+        if(st.st_size % sizeof(uint32_t) != 0){
+                errx(3, "File2 is not in our format");
+        }
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(4, "Error openig file");
+        }
+
+        int fd2 = open(argv[2], O_RDONLY);
+        if(fd2 < 0){
+                err(4, "Error openig file");
+        }
+
+        int fd3 = open(argv[3], O_CREAT, O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
+        if(fd3 < 0){
+                err(4, "Error openig file");
+        }
+
+        ssize_t bytes_read;
+
+        while( (bytes_read = read(fd1, &data, sizeof(data))) > 0){
+                if(lseek(fd2, (data.x - 1) *sizeof(uint32_t), SEEK_SET) < 0){
+                        err(6, "Error lseek");
+                }
+
+                uint32_t buf;
+                for(uint32_t i = 0; i < data.y; i++){
+                        bytes_read = read(fd2, &buf, sizeof(buf));
+                        if(bytes_read < 0){
+                                err(5, "Error reading");
+                        }
+
+                        if(write(fd3, &buf, sizeof(buf)) < 0){
+                                err(6, "Error writing");
+                        }
+                }
+        }
+
+        if(bytes_read == -1){
+                err(5, "Error reading");
+        }
+
+        close(fd1);
+        close(fd2);
+        close(fd3);
+
+        exit(0);
+}
+
+
+зад.51
+
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <err.h>
+#include <stdlib.h>
+
+#neshto ne raboti kakto trqbwa
+
+
+int comparator(const void* p1, const void* p2){
+        uint32_t n1 = *(const uint32_t*) p1;
+        uint32_t n2 = *(const uint32_t*) p2;
+
+        return n1 - n2;
+}
+
+int main(int argc, char* argv[]){
+
+        if(argc != 2){
+                errx(1, "We need one argument");
+        }
+
+        struct stat st;
+
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size % sizeof(uint32_t) != 0){
+                errx(3, "File not in our format");
+        }
+
+        uint32_t maxN = 100000000;
+        if(st.st_size > maxN * sizeof(uint32_t)){
+                errx(4, "File must have only 100 000 000 numbers");
+        }
+
+        int fd = open(argv[1], O_RDWR);
+        if(fd < 0){
+                err(4, "Error openig");
+        }
+
+        uint32_t first_part_size = (st.st_size / sizeof(uint32_t)) / 2;
+    	uint32_t second_part_size = (st.st_size / sizeof(uint32_t)) - first_part_size;
+        uint32_t* buf = malloc(first_part_size * sizeof(uint32_t));
+
+        if(!buf){
+                err(5, "Error malloc");
+        }
+
+        if (read(fd, buf, (first_part_size * sizeof(uint32_t))) < 0){
+                err(6, "Error reading");
+        }
+
+        qsort(buf, first_part_size, sizeof(uint32_t), comparator);
+
+        int t1 = open("temp1", O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(t1 < 0){
+                err(4, "Error opening");
+        }
+
+        if(write(t1, buf, (first_part_size * sizeof(uint32_t))) < 0){
+                err(7, "Error writing");
+        }
+
+        free(buf);
+
+        buf = malloc(second_part_size * sizeof(uint32_t));
+        if(!buf){
+                err(5, "Error malloc");
+        }
+
+        if( read(fd, buf, (second_part_size * sizeof(uint32_t))) < 0){
+                err(6, "Error reading");
+        }
+
+        qsort(buf, second_part_size, sizeof(uint32_t), comparator);
+
+        int t2 = open("temp2", O_CREAT | O_TRUNC | O_RDWR, S_IRUSR, S_IWUSR);
+        if(t2 < 0){
+                err(4, "Error openig");
+        }
+
+        if(write(t2, buf, (second_part_size * sizeof(uint32_t))) < 0){
+                err(7, "Error writing");
+        }
+
+        free(buf);
+
+        if(lseek(fd, 0, SEEK_SET) < 0){
+                err(8, "Error lseek");
+        }
+
+        uint32_t cnt1 = 0;
+        uint32_t cnt2 = 0;
+
+        uint32_t num1;
+        uint32_t num2;
+
+        while(cnt1 < first_part_size && cnt2 < second_part_size){
+                if(lseek(t1, (cnt1 * sizeof(uint32_t)), SEEK_SET) < 0){
+                        err(8, "Error lseek");
+                }
+
+                if(lseek(t2, (cnt2 * sizeof(uint32_t)), SEEK_SET) < 0){
+                        err(8, "Error lseek");
+                }
+
+                if(read(t1, &num1, sizeof(num1)) < 0){
+                        err(6, "Error reading");
+                }
+
+                if(read(t2, &num2, sizeof(num2)) < 0){
+                        err(6, "Error reading");
+                }
+
+                if(comparator(&num1, &num2) < 0){
+                        if(write(fd, &num1, sizeof(num1)) <= 0){
+                                err(7, "Error writing");
+                        }
+
+                        cnt1++;
+                }
+                else{
+                        if(write(fd, &num2, sizeof(num2)) <= 0){
+                                err(7, "Error writing");
+                        }
+
+                        cnt2++;
+                }
+        }
+
+        while(cnt1 < first_part_size){
+                if(read(t1, &num1, sizeof(num1)) < 0){
+                        err(6, "Error reading");
+                }
+
+                if(write(fd, &num1, sizeof(num1)) <= 0){
+                        err(7, "Error writing");
+                }
+
+                cnt1++;
+        }
+
+        while(cnt2 < second_part_size){
+                if(read(t2, &num2, sizeof(num2)) < 0){
+                        err(6, "Error reading");
+                }
+
+                if(write(fd, &num2, sizeof(num2)) <= 0){
+                        err(7, "Error writing");
+                }
+
+                cnt2++;
+        }
+
+        close(fd);
+        close(t1);
+        close(t2);
+
+        exit(0);
+}
+
+
+зад.52
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <err.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main(int argc, char* argv[]){
+        if(argc != 5){
+                errx(1, "We need 4 arguments!");
+        }
+
+        struct data{
+                uint16_t offset;
+                uint8_t length;
+                uint8_t other;
+        }__attribute__((packed));
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(2, "Error openig");
+        }
+
+        int fd2 = open(argv[2], O_RDONLY);
+        if(fd2 < 0){
+                err(2, "Error openig");
+        }
+
+        int fd3 = open(argv[3], O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR, S_IWUSR);
+        if(fd3 < 0){
+                err(2, "Error openig");
+        }
+
+        int fd4 = open(argv[4], O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR, S_IWUSR);
+        if(fd4 < 0){
+                err(2, "Error opening");
+        }
+
+        struct stat st;
+        if(stat(argv[2], &st) < 0){
+                err(3, "Error stat");
+        }
+
+        struct data index;
+
+        if(st.st_size % sizeof(index) != 0){
+                errx(4, "Incorrect format");
+        }
+
+        uint16_t towrite_offset = 0x0000;
+        ssize_t bytes_read;
+
+        while( (bytes_read = read(fd2, &index, sizeof(index))) > 0){
+                if(lseek(fd1, index.offset, SEEK_SET) < 0){
+                        err(6, "Error lseek");
+                }
+
+                char buf;
+
+                if(read(fd1, &buf, 1) <= 0){
+                        err(5, "Error reading");
+                }
+
+                if(buf <= 'A' || buf >= 'Z'){
+                        continue;
+                }
+
+                if(write(fd3, &buf, sizeof(buf)) <= 0){
+                        err(7, "Error writing");
+                }
+
+                ssize_t toread = 1;
+
+                while(toread < index.length){
+                        if(read(fd1, &buf, sizeof(buf)) <= 0){
+                                err(5, "Error reading");
+                        }
+
+                        toread = toread + sizeof(char);
+
+                        if(write(fd3, &buf, 1) <= 0){
+                                err(7, "Error writing");
+                        }
+                }
+
+                struct data towrite = {towrite_offset, index.length, 0x00};
+
+                if(write(fd4, &towrite, sizeof(towrite)) < (ssize_t)sizeof(towrite)){
+                        err(7, "Error writing");
+                }
+
+                towrite_offset += index.length;
+        }
+
+        if(bytes_read == -1){
+                err(5, "Error readind");
+        }
+
+        close(fd1);
+        close(fd2);
+        close(fd3);
+        close(fd4);
+
+        exit(0);
+}
+
+зад.53
+
+#include <stdint.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <err.h>
+#include <unistd.h>
+
+
+int main(int argc, char* argv[]){
+
+        if(argc != 4){
+                errx(1, "We need 3 arguments");
+        }
+
+        struct stat st1;
+        struct stat st2;
+
+        if(stat(argv[1], &st1) < 0){
+                err(2, "Error stat");
+        }
+
+        if(stat(argv[2], &st2) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st1.st_size != st2.st_size){
+                errx(3, "Files must have same length");
+        }
+
+ 	if(st1.st_size > 0xFFFF){
+                warnx("Size of file is too big. Patch file maybe not correct");
+        }
+
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(4, "Error opening");
+        }
+
+        int fd2 = open(argv[2], O_RDONLY);
+        if(fd2 < 0){
+                err(4, "Error opening");
+        }
+
+        int fd3 = open(argv[3], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR, S_IWUSR);
+        if(fd3 < 0){
+                err(4, "Error opening");
+        }
+
+        struct data {
+                uint16_t offset;
+                uint8_t b1;
+                uint8_t b2;
+        }__attribute__((packed));
+
+        struct data d;
+
+        for(d.offset = 0; d.offset < st1.st_size; d.offset++){
+                if(read(fd1, &d.b1, sizeof(d.b1)) <= 0){
+                        err(5, "Error reading");
+                }
+
+                if(read(fd2, &d.b2, sizeof(d.b2)) <= 0){
+                        err(5, "Error reading");
+                }
+
+                if(d.b1 != d.b2){
+                        if(write(fd3, &d, sizeof(d)) != sizeof(d)){
+                                err(6, "Error writing");
+                        }
+                }
+        }
+
+	close(fd1);
+	close(fd2);
+	close(fd3);
+
+        exit(0);
+}
+
+зад.54
+#include <stdint.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <stdbool.h>
+
+int main(int argc, char* argv[]){
+        if(argc == 1){
+                char buf[4096];
+
+                ssize_t bytes_read;
+
+                while( (bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                        if(write(1, &buf, bytes_read) != bytes_read){
+                                err(2, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(1, "Error reading");
+                }
+
+                exit(0);
+        }
+
+        bool numbers = false;
+        int lines = 1;
+        bool newLine = true;
+        int argcCnt = 1;
+
+        setbuf(stdout, NULL);
+
+        if(strcmp(argv[1], "-n") == 0){
+                numbers = true;
+                argcCnt = 2;
+
+                if(argc == 2){
+                        char buf;
+                        ssize_t bytes_read;
+                        while((bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                                if(newLine){
+                                        printf("%d ", lines);
+                                        newLine = false;
+                                }
+
+                                if(buf == '\n'){
+                                        lines++;
+                                        newLine = true;
+                                }
+
+                                if(write(1, &buf, sizeof(buf)) < 0){
+                                        err(2, "Error writing");
+                                }
+                        }
+
+                        if(bytes_read == -1){
+                                err(1, "Error reading");
+                        }
+
+                        exit(0);
+                }
+        }
+
+        for(; argcCnt < argc; argcCnt++){
+                int fd;
+                if(strcmp(argv[argcCnt], "-") == 0){
+                        fd = 0;
+                }
+                else{
+                        fd = open(argv[argcCnt], O_RDONLY);
+                        if(fd < 0){
+                                warn("Cant open file");
+                                continue;
+                        }
+                }
+
+                char buf;
+                ssize_t bytes_read;
+
+                while((bytes_read = read(fd, &buf, sizeof(buf))) > 0){
+                        if(numbers && newLine){
+                                printf("%d ", lines);
+                                newLine = false;
+                        }
+
+                        if(numbers && buf == '\n'){
+                                lines++;
+                                newLine = true;
+                        }
+
+                        if(write(1, &buf, sizeof(buf)) < 0){
+                                err(2, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(1, "Error reading");
+                }
+
+                if(fd != 0){
+                        close(fd);
+                }
+        }
+
+        exit(0);
+}
+
+зад.55
+
+#include <stdint.h>
+#include <err.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc != 4){
+                errx(1, "We need 3 arguments");
+        }
+
+        struct data{
+                uint16_t offset;
+                uint8_t b1;
+                uint8_t b2;
+        }__attribute__((packed));
+
+        struct data patch;
+
+        struct stat st1;
+        if(stat(argv[1], &st1) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st1.st_size % sizeof(patch) != 0){
+                errx(3, "Patch file not in format");
+        }
+
+        struct stat st2;
+        if(stat(argv[2], &st2) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st2.st_size > 0xFFFF){
+                warnx("Too big file. Possible mistakes");
+        }
+
+        int p = open(argv[1], O_RDONLY);
+        if(p < 0){
+                err(4, "Error openig");
+        }
+
+        int fd1 = open(argv[2], O_RDONLY);
+        if(fd1 < 0){
+                err(4, "Error opening");
+        }
+
+        int fd2 = open(argv[3], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR, S_IWUSR);
+        if(fd2 < 0){
+                err(4, "Error opening");
+        }
+
+        uint8_t buf;
+        ssize_t bytes_read;
+
+        while((bytes_read = read(fd1, &buf, sizeof(buf))) > 0){
+                if(write(fd2, &buf, bytes_read) < 0){
+                        err(6, "Error writing");
+                }
+        }
+
+        if(bytes_read == -1){
+                err(5, "Error readind");
+        }
+
+        while((bytes_read = read(p, &patch, sizeof(patch))) > 0){
+                if(patch.offset > st2.st_size){
+                        errx(7, "Incorrect offset, out of file. Offset: %d, size: %ld", patch.offset, st2.st_size);
+                }
+
+                if(lseek(fd2, patch.offset, SEEK_SET) < 0){
+                        err(8, "Error lseek");
+                }
+
+                if(read(fd2,&buf, sizeof(buf)) < 0){
+                        err(5, "Error reading");
+                }
+
+                if(buf != patch.b1){
+                        errx(9, "Different patch file!");
+                }
+
+                if(lseek(fd2, patch.offset, SEEK_SET) < 0){
+                        err(8, "Error lseek");
+                }
+
+                if(write(fd2, &patch.b2, sizeof(patch.b2)) < 0){
+                        err(6, "Error writnig");
+                }
+        }
+
+        if(bytes_read == -1){
+                err(5, "Error readind");
+        }
+
+        close(fd1);
+        close(fd2);
+        close(p);
+
+        exit(0);
+}
+
+зад.56
+#include <err.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc == 1){
+                char buf[4096];
+                ssize_t bytes_read;
+                while((bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                        if(write(1, &buf, bytes_read) != bytes_read){
+                                err(2, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(1, "Error reading");
+                }
+
+                exit(0);
+        }
+
+        for(int i = 1;i < argc; i++){
+                int fd;
+                ssize_t bytes_read;
+                if(strcmp(argv[i], "-") == 0){
+                        fd = 0;
+                }
+                else{
+                        fd = open(argv[i], O_RDONLY);
+                        if(fd < 0){
+                                warn("Error opening");
+                                continue;
+                        }
+                }
+
+                char buf[4096];
+
+                while((bytes_read = read(fd, &buf, sizeof(buf))) > 0){
+                        if(write(1,&buf, bytes_read) != bytes_read){
+                                err(2, "Error writiing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(1, "Error reading");
+                }
+		
+		if(fd != 0){
+			close(fd);
+		}
+        }
+
+        exit(0);
+}
+
+зад.57
+
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdbool.h>
+
+
+int main(int argc, char* argv[]){
+
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        if((strcmp(argv[1], "-d") != 0) && (strcmp(argv[1], "-s") != 0)){
+                if(strlen(argv[1]) != strlen(argv[2])){
+                        errx(2, "The first and second must have same length");
+                }
+        }
+
+        ssize_t bytes_read;
+        char buf;
+        if(strcmp(argv[1], "-s") == 0){
+                char prev = ' ';
+                while((bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                        if((buf != prev && buf == argv[2][0]) || (buf != argv[2][0])){
+                                if(write(1, &buf, sizeof(buf)) != sizeof(buf)){
+                                        err(4, "Error writing");
+                                }
+
+                                prev = buf;
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(3, "Error reading");
+                }
+        }
+        else if(strcmp(argv[1], "-d") == 0){
+                bool print = true;
+                while((bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                        for(size_t i = 0; i < strlen(argv[2]); i++){
+                                if(buf == argv[2][i]){
+                                        print = false;
+                                }
+                        }
+
+                        if(print){
+                                if(write(1, &buf, bytes_read) != bytes_read){
+                                        err(4, "Error writing");
+                                }
+                        }
+
+                        print = true;
+                }
+
+                if(bytes_read == -1){
+                        err(3, "Error reading");
+                }
+        }
+        else{
+                while((bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                        for(size_t i = 0; i < strlen(argv[1]); i++){
+                                if(buf == argv[1][i]){
+                                        buf = argv[2][i];
+                                }
+                        }
+
+                        if(write(1, &buf, bytes_read) != bytes_read){
+                                err(4, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(3, "Error reading");
+                }
+        }
+
+        exit(0);
+}
+
+зад. 58
+
+#include <err.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+
+int comparator(const void* p1, const void* p2){
+        uint32_t n1 = *(uint32_t*) p1;
+        uint32_t n2 = *(uint32_t*) p2;
+
+        return n1 - n2;
+}
+
+int main(int argc, char* argv[]){
+        if(argc != 3){
+                errx(1, "We need 2 argument");
+        }
+
+        struct stat st;
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size % sizeof(uint32_t) != 0){
+                errx(3, "Not correct size");
+        }
+
+        uint32_t numbers = st.st_size / sizeof(uint32_t);
+        const uint32_t maxN = 4194304;
+        if(numbers > maxN){
+                errx(4, "Too many numbers");
+        }
+
+        uint32_t first = numbers / 2;
+        uint32_t second = numbers - first;
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(5, "Error opening");
+        }
+
+        uint32_t* buf = malloc(first * sizeof(uint32_t));
+
+        if(!buf){
+                err(6, "Error malloc");
+        }
+
+        if(read(fd1, buf, first * sizeof(uint32_t)) < 0){
+                err(7, "Error reading");
+        }
+
+        int temp1 = open("temp1", O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(temp1 < 0){
+                err(5, "Error opening");
+        }
+
+        qsort(buf, first, sizeof(uint32_t), comparator);
+
+        if(write(temp1, buf, first * sizeof(uint32_t)) < 0){
+                err(8, "Error writing");
+        }
+
+        free(buf);
+
+        buf = malloc(second * sizeof(uint32_t));
+
+        if(!buf){
+                err(6, "Error malloc");
+        }
+
+        if(read(fd1, buf, first * sizeof(uint32_t)) < 0){
+                err(7, "Error reading");
+        }
+
+        int temp2 = open("temp2", O_CREAT | O_TRUNC | O_RDWR, S_IRUSR, S_IWUSR);
+        if(temp2 < 0){
+                err(5, "Error opening");
+        }
+
+        qsort(buf, second, sizeof(uint32_t), comparator);
+
+        if(write(temp2, buf, sizeof(uint32_t)) < 0){
+                err(8, "Error writing");
+        }
+
+        free(buf);
+
+        int fd2 = open(argv[2], O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
+        if(fd2 < 0){
+                err(5, "Error opening");
+        }
+
+        uint32_t cnt1 = 0;
+        uint32_t cnt2 = 0;
+
+        uint32_t num1;
+        uint32_t num2;
+
+        while(cnt1 < first && cnt2 < second){
+                if(lseek(temp1, cnt1 * sizeof(uint32_t), SEEK_SET) < 0){
+                        err(9,"Error lseek");
+                }
+
+                if(lseek(temp2, cnt2 * sizeof(uint32_t), SEEK_SET) < 0){
+                        err(9, "Error lseek");
+                }
+
+                if(read(temp1, &num1, sizeof(uint32_t)) < 0){
+                        err(7, "Error reading");
+                }
+
+                if(read(temp2, &num2, sizeof(uint32_t)) < 0){
+                        err(7, "Error reading");
+                }
+
+                if(comparator(&num1, &num2) < 0){
+                        if(write(fd2, &num1, sizeof(num1)) < 0){
+                                err(8, "Error writing");
+                        }
+
+                        cnt1++;
+                }
+                else{
+                        if(write(fd2, &num2, sizeof(num2)) < 0){
+                                err(8, "Error writing");
+                        }
+
+                        cnt2++;
+                }
+        }
+
+        while(cnt1 < first){
+                if(lseek(temp1, cnt1*sizeof(uint32_t), SEEK_SET) < 0){
+                        err(9, "Error lseek");
+                }
+
+                if(read(temp1, &num1, sizeof(num1)) < 0){
+                        err(7, "Error reading");
+                }
+
+                if(write(fd2, &num1, sizeof(num1)) < 0){
+                        err(8, "Error writing");
+                }
+
+                cnt1++;
+        }
+
+        while(cnt2 < second){
+                if(lseek(temp2, cnt2*sizeof(uint32_t), SEEK_SET) < 0){
+                        err(9, "Error lseek");
+                }
+
+                if(read(temp2, &num2, sizeof(num2)) < 0){
+                        err(7, "Error reading");
+                }
+
+                if(write(fd2, &num2, sizeof(num2)) < 0){
+                        err(8, "Error writing");
+                }
+
+                cnt2++;
+        }
+
+        close(fd2);
+        close(temp1);
+        close(temp2);
+        close(fd1);
+
+        exit(0);
+}
+
+зад.59
+#include <err.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc < 3){
+                errx(1, "We need at least 2 arguments");
+        }
+
+        if(strcmp(argv[1], "-c") == 0){
+                int n, m;
+                if(strlen(argv[2]) == 1){
+                        n = argv[2][0] - '0';
+                        m = n;
+                }
+                else if(strlen(argv[2]) == 3){
+                        n = argv[2][0] - '0';
+                        m = argv[2][2] - '0';
+
+                        if(n > m){
+                                errx(3, "The second must be bigger");
+                        }
+                }
+                else{
+                        errx(4, "Wrong format of argument");
+                }
+
+                ssize_t bytes_read;
+                ssize_t cnt = 0;
+                char buf;
+
+                while((bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                        cnt += sizeof(buf);
+
+                        if(buf == '\n'){
+                                cnt = 0;
+                                if(write(1, &buf, sizeof(buf)) != sizeof(buf)){
+                                        err(6, "Error writing");
+                                }
+
+                                continue;
+                        }
+
+                        if(cnt >=n && cnt <= m){
+                                if(write(1, &buf, sizeof(buf)) != sizeof(buf)){
+                                        err(6, "Error writing");
+                                }
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(5, "Error reading");
+                }
+        }
+        else if(strcmp(argv[1], "-d") == 0){
+                if(argc != 5){
+                        errx(7, "Not enough arguments for -d");
+                }
+
+                if(strcmp(argv[3], "-f") != 0){
+                        errx(8, "Wrong format for -d");
+                }
+
+                char delim = argv[2][0];
+                int n, m;
+                if(strlen(argv[4]) == 1){
+                        n = argv[4][0] - '0';
+                        m = n;
+                }
+                else if(strlen(argv[4]) == 3){
+                        n = argv[4][0] - '0';
+                        m = argv[4][2] - '0';
+
+                        if(n > m){
+                                errx(3, "The second must be bigger");
+                        }
+
+                }
+                else{
+                        errx(4, "Wrong format of argument");
+                }
+
+                int col = 1;
+                char buf;
+                ssize_t bytes_read;
+
+                while((bytes_read = read(0, &buf, sizeof(buf))) > 0){
+                        if(buf == delim){
+                                col++;
+
+                                if(col > n && col <= m){
+                                        if(write(1, &buf, sizeof(buf)) != sizeof(buf)){
+                                                err(6, "Error writing");
+                                        }
+                                }
+                        }
+                        else if(buf == '\n'){
+                                col = 1;
+                                if(write(1, &buf, sizeof(buf)) != sizeof(buf)){
+                                        err(6, "Error writing");
+                                }
+                        }
+                        else{
+                                if(col >= n && col <= m){
+                                        if(write(1, &buf, sizeof(buf)) != sizeof(buf)){
+                                                err(6, "Error writing");
+                                        }
+                                }
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(5, "Error reading");
+                }
+
+        }
+        else{
+                errx(2, "Not in correct format");
+        }
+
+        exit(0);
+}
+
+зад.60
+#include <stdint.h>
+#include <err.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+
+int comparator(const void* p1, const void* p2){
+        uint16_t num1 = *(const uint16_t*)p1;
+        uint16_t num2 = *(const uint16_t*)p2;
+
+        return num1 - num2;
+}
+
+int main(int argc, char* argv[]){
+
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        struct stat st;
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size % sizeof(uint16_t) != 0){
+                errx(3, "Error size format");
+        }
+
+        const uint16_t maxN = 65535;
+
+        if( maxN < (st.st_size / sizeof(uint16_t))){
+                errx(4, "Too many numbers");
+        }
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(5, "Error opening");
+        }
+
+        int fd2 = open(argv[2], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(fd2 < 0){
+                err(5, "Error opening");
+        }
+
+        uint16_t* buffer = malloc(st.st_size);
+        if(!buffer){
+                err(6, "Error malloc");
+        }
+
+        if(read(fd1, buffer, st.st_size) < 0){
+                err(7, "Error reading");
+        }
+
+        qsort(buffer, st.st_size / sizeof(uint16_t), sizeof(uint16_t), comparator);
+
+        if(write(fd2, buffer, st.st_size) < 0){
+                err(8, "Error writing");
+        }
+
+        free(buffer);
+
+        close(fd1);
+        close(fd2);
+
+        exit(0);
+}
+
+
+
+зад.62
+#include <err.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc != 4){
+                errx(1, "We need 3 arguments");
+        }
+
+        struct header{
+                uint32_t magic;
+                uint8_t header_version;
+                uint8_t data_version;
+                uint16_t count;
+                uint32_t res1;
+                uint32_t res2;
+        }__attribute__((packed));
+
+        struct header input;
+
+        struct data1{
+                uint16_t offset;
+                uint8_t original;
+                uint8_t new;
+        }__attribute__((packed));
+
+        struct data1 part1;
+
+        struct data2{
+                uint32_t offset;
+                uint16_t original;
+                uint16_t new;
+        }__attribute__((packed));
+
+        struct data2 part2;
+
+        struct stat st;
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size < 0x10){
+                errx(3, "We dont have enough for header");
+        }
+
+        int pt = open(argv[1], O_RDONLY);
+        if(pt < 0){
+                err(4, "Error opening");
+        }
+
+        if(read(pt, &input, sizeof(input)) < 0){
+                err(5, "Error reading");
+        }
+
+        if(input.magic != 0xEFBEADDE){
+                errx(6, "Incorrect header data");
+        }
+
+        if(input.header_version != 0x01){
+                errx(6, "Incorrect header data");
+        }
+
+        if(input.data_version == 0x00){
+                struct stat st1;
+                if(stat(argv[2], &st1) < 0){
+                        err(2, "Error stat");
+                }
+
+                if(st1.st_size > 0xFFFF){
+                        warnx("Maybe have mistakes");
+                }
+
+                if((size_t)st.st_size != (sizeof(input) + input.count * sizeof(uint32_t))){
+                        errx(11, "Wrong format file");
+                }
+
+                int fd1 = open(argv[2], O_RDONLY);
+                if(fd1 < 0){
+                        err(4, "Error opening");
+                }
+
+                int fd2 = open(argv[3], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+                if(fd2 < 0){
+                        err(4, "Error opening");
+                }
+
+                uint8_t buf;
+                ssize_t bytes_read;
+                while((bytes_read = read(fd1, &buf, sizeof(buf))) > 0){
+                        if(write(fd2, &buf, sizeof(buf)) != sizeof(buf)){
+                                err(6, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(5, "Error reading");
+                }
+
+                while((bytes_read = read(pt, &part1, sizeof(part1))) > 0){
+                        if(part1.offset > st1.st_size){
+                                errx(8, "Incorrect offset");
+                        }
+
+                        if(lseek(fd1, part1.offset, SEEK_SET) < 0){
+                                err(9, "Error lseek");
+                        }
+
+                        if(read(fd1, &buf, sizeof(buf)) < 0){
+                                err(5, "Error reading");
+                        }
+
+                        if(buf != part1.original){
+                                errx(10, "Wrong patch file");
+                        }
+
+                        if(lseek(fd2, part1.offset, SEEK_SET) < 0){
+                                err(9, "Error lseek");
+                        }
+
+                        if(write(fd2, &part1.new, sizeof(uint8_t)) != sizeof(uint8_t)){
+                                err(6, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(5, "Error reading");
+                }
+
+                close(fd1);
+                close(fd2);
+        }
+        else if(input.data_version == 0x01){
+                struct stat st2;
+                if(stat(argv[2], &st2) < 0){
+                        err(2, "Error stat");
+                }
+
+                if(st2.st_size > 0xFFFFFFFF){
+                        warnx("Maybe have mistakes");
+                }
+
+                if(st2.st_size % 2 != 0){
+                        errx(7, "Wrong format file");
+                }
+
+                if((size_t)st.st_size != (sizeof(input) + input.count * sizeof(part2))){
+                        errx(11,"Wrong patch file");
+                }
+
+                int fd1 = open(argv[2], O_RDONLY);
+                if(fd1 < 0){
+                        err(4, "Error opening");
+                }
+
+                int fd2 = open(argv[3], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+                if(fd2 < 0){
+                        err(4, "Error opening");
+                }
+
+                uint16_t buf;
+                ssize_t bytes_read;
+                while((bytes_read = read(fd1, &buf, sizeof(buf))) > 0){
+                        if(write(fd2, &buf, sizeof(buf)) != sizeof(buf)){
+                                err(6, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(5, "Error reading");
+                }
+
+                while((bytes_read = read(pt, &part2, sizeof(part2))) > 0){
+                        if(part2.offset > st2.st_size){
+                                errx(8, "Incorrect offset");
+                        }
+
+                        if(lseek(fd1, part2.offset * sizeof(uint16_t), SEEK_SET) < 0){
+                                err(9, "Error lseek");
+                        }
+
+                        if(read(fd1, &buf, sizeof(buf)) < 0){
+                                err(5, "Error reading");
+                        }
+
+                        if(buf != part2.original){
+                                errx(10, "Wrong patch file");
+                        }
+
+                        if(lseek(fd2, part2.offset * sizeof(uint16_t), SEEK_SET) < 0){
+                                err(9, "Error lseek");
+                        }
+
+                        if(write(fd2, &part2.new, sizeof(uint16_t)) != sizeof(uint16_t)){
+                                err(6, "Error writing");
+                        }
+                }
+
+                if(bytes_read == -1){
+                        err(5, "Error reading");
+                }
+
+                close(fd1);
+                close(fd2);
+
+        }
+        else{
+                errx(12, "Wrong data version");
+        }
+
+        close(pt);
+
+        exit(0);
+}
+
+зад.63
+#include <stdint.h>
+#include <err.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+
+int main(int argc, char* argv[]){
+
+        if(argc != 7){
+                errx(1, "We need 6 arguments");
+        }
+
+        struct header{
+                char arr1[4];
+                uint16_t count;
+                char arr2[10];
+        }__attribute__((packed));
+
+        struct interval{
+                uint16_t offset;
+                uint16_t length;
+        };
+
+        struct interval k[4];
+
+        int sizes[4];
+        sizes[0] = 4;
+        sizes[1] = 1;
+        sizes[2] = 2;
+        sizes[3] = 8;
+
+        struct stat stAf;
+        if(stat(argv[1], &stAf) < 0){
+                err(2, "Error stat");
+        }
+
+        if(stAf.st_size < 16){
+                errx(3, "Not enough for header");
+        }
+
+        int affix = open(argv[1], O_RDONLY);
+        if(affix < 0){
+                err(4, "Error opening");
+        }
+
+        struct header input;
+        if(read(affix, &input, sizeof(input)) < 0){
+                err(5, "Error reading");
+        }
+
+        if(input.count % 8 != 0){
+                errx(6, "Wrong format affix file");
+        }
+
+        if((stAf.st_size - 16) % 16 != 0){
+                errx(6, "Wrong format affix file");
+        }
+
+        //proverka ostanalite failove razmeri
+        struct stat stPost;
+        if(stat(argv[2], &stPost) < 0){
+                err(2, "Error stat");
+        }
+
+        if(stPost.st_size < 16){
+                errx(3, "Not enough for header");
+        }
+
+        if((stPost.st_size - 16) % sizeof(uint32_t) != 0){
+                errx(7, "Wrong format file");
+        }
+
+        struct stat stPre;
+        if(stat(argv[3], &stPre) < 0){
+                err(2, "Error stat");
+        }
+
+        if(stPre.st_size < 16){
+                errx(3, "Not enough for header");
+        }
+
+        struct stat stIn;
+        if(stat(argv[4], &stIn) < 0){
+                err(2, "Error stat");
+        }
+
+        if(stIn.st_size < 16){
+                errx(3, "Not enough for header");
+        }
+
+        if((stIn.st_size - 16) % sizeof(uint16_t) != 0){
+                errx(7, "Wrong format file");
+        }
+
+        //za sufix i crucifixus sushtoto
+
+
+        int fd[4];
+
+        for(int i = 2; i < (argc - 1); i++){
+                fd[i-2] = open(argv[i], O_RDONLY);
+                if(fd[i-2] < 0){
+                        err(8, "Error opening");
+                }
+        }
+
+        int fdCru = open(argv[6], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(fdCru < 0){
+                err(8, "Error opening");
+        }
+
+        if(lseek(fdCru, 16, SEEK_SET) < 0){
+                err(10, "Error lseek");
+        }
+
+        uint64_t element;
+        ssize_t bytes_read;
+
+        while((bytes_read = read(affix, &k, sizeof(k))) > 0){
+                for(int i = 0; i < 4; i++){
+                        if(lseek(fd[i], 16 + k[i].offset * sizes[i], SEEK_SET) < 0){
+                                err(10, "Error lseek");
+                        }
+                        for(int j = 0; j < k[i].length; j++){
+                                if(read(fd[i], &element, sizes[i]) < 0){
+                                        err(9, "Error reading");
+                                }
+
+                                if(write(fdCru, &element, sizes[i]) != sizes[i]){
+                                        err(11, "Error writing");
+                                }
+                        }
+                }
+        }
+
+        if(bytes_read == -1){
+                err(9, "Error reading");
+        }
+
+        close(fdCru);
+        close(affix);
+
+        for(int i = 0; i < 4; i++){
+                close(fd[i]);
+        }
+
+
+        exit(0);
+}
+
+зад.64
+#include <stdint.h>
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        struct stat st;
+        if(stat(argv[2], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size % 16 != 0){
+                errx(3, "Wrong format file");
+        }
+
+        uint8_t one[8] = {
+                0x01,
+                0x02,
+                0x04,
+                0x08,
+                0x10,
+                0x20,
+                0x40,
+                0x80,
+        };
+
+        uint16_t input[8];
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(4, "Error opening");
+        }
+
+        int fd2 = open(argv[2], O_RDONLY);
+        if(fd2 < 0){
+                err(4, "Error opening");
+        }
+
+        int fd3 = open("file.txt", O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(fd3 < 0){
+                err(4, "Error opening");
+        }
+
+        uint8_t bufBit;
+
+        //proverki trqbva da ima
+        while(read(fd1, &bufBit, sizeof(bufBit)) > 0){
+
+                read(fd2, &input, sizeof(input));
+                for(int i = 7; i >= 0; i--){
+                        if((bufBit & one[i]) != 0){
+                                write(fd3, &input[7-i], sizeof(uint16_t));
+                        }
+                }
+        }
+
+
+        exit(0);
+}
+
+
+зад.65
+#include <err.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <unistd.h>
+
+uint16_t calc(uint8_t);
+
+int main(int argc, char* argv[]){
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(2, "Error opening");
+        }
+
+        int fd2 = open(argv[2], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(fd2 < 0){
+                err(2, "Error opening");
+        }
+
+        ssize_t bytes_read;
+        uint8_t buf;
+        uint16_t encode;
+
+        while((bytes_read = read(fd1, &buf, sizeof(uint8_t))) > 0){
+                encode = calc(buf);
+                if(write(fd2, &encode, sizeof(uint16_t)) != sizeof(uint16_t)){
+                        err(4, "Error writing");
+                }
+        }
+
+        if(bytes_read == -1){
+                err(3, "Error reading");
+        }
+
+        close(fd1);
+        close(fd2);
+
+        exit(0);
+}
+
+uint16_t calc(uint8_t x){
+        uint8_t one[8] = {
+                0x01,
+                0x02,
+        0x04,
+        0x08,
+        0x10,
+        0x20,
+        0x40,
+                0x80,
+        };
+
+        uint16_t two[8] = {
+        0x0002,
+            0x0008,
+        0x0020,
+            0x0080,
+        0x0200,
+            0x0800,
+            0x2000,
+            0x8000,
+        };
+
+        uint16_t three[8] = {
+        0x0001,
+            0x0004,
+        0x0010,
+            0x0040,
+        0x0100,
+            0x0400,
+            0x1000,
+            0x4000,
+        };
+
+        uint16_t result = 0;
+        for(int i = 0; i < 8; i++){
+                if((x & one[i]) != 0){
+                        result = result | two[i];
+                }
+                else{
+                        result = result | three[i];
+                }
+        }
+
+        return result;
+}
+
+зад.66
+#include <stdint.h>
+#include <err.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+
+uint16_t calc(uint8_t);
+
+int main(int argc, char* argv[]){
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        struct stat st;
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size % sizeof(uint16_t) != 0){
+                errx(3, "Wrong format file1");
+        }
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(4, "Error opening");
+        }
+
+        int fd2 = open(argv[2], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(fd2 < 0){
+                err(4, "Error opening");
+        }
+
+        uint16_t m[256];
+        for(int i = 0; i < 256; i++){
+                m[i] = calc(i);
+        }
+
+        uint8_t b[65536] = {0};
+        uint8_t c[65536] = {0};
+
+        for(int i = 0; i < 256; i++){
+                b[m[i]] = i;
+                c[m[i]] = 1;
+        }
+
+        uint16_t buf;
+
+        while(read(fd1, &buf, sizeof(uint16_t)) > 0){
+                if(c[buf] != 1){
+                        warnx("No result for this character");
+                }
+                else
+                {
+                        write(fd2, &b[buf], sizeof(uint8_t));
+                }
+        }
+
+        exit(0);
+}
+
+uint16_t calc(uint8_t x){
+        uint8_t one[8] = {
+                0x01,
+                0x02,
+        0x04,
+        0x08,
+        0x10,
+        0x20,
+        0x40,
+                0x80,
+        };
+
+        uint16_t two[8] = {
+        0x0002,
+            0x0008,
+        0x0020,
+            0x0080,
+        0x0200,
+            0x0800,
+            0x2000,
+            0x8000,
+        };
+
+        uint16_t three[8] = {
+        0x0001,
+            0x0004,
+        0x0010,
+            0x0040,
+        0x0100,
+            0x0400,
+            0x1000,
+            0x4000,
+        };
+
+        uint16_t result = 0;
+        for(int i = 0; i < 8; i++){
+                if((x & one[i]) != 0){
+                        result = result | two[i];
+                }
+                else{
+                        result = result | three[i];
+                }
+        }
+
+        return result;
+}
+
+
+зад.67
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        struct stat st;
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size % sizeof(uint16_t) != 0){
+                errx(3, "Wrong format input.bin");
+        }
+
+        int fd1 = open(argv[1], O_RDONLY);
+        if(fd1 < 0){
+                err(4, "Error opening");
+        }
+
+        int fd2 = open(argv[2], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(fd2 < 0){
+                err(4, "Error opening");
+        }
+
+        uint32_t arrN;
+        arrN = st.st_size / sizeof(uint16_t);
+
+        if(write(fd2, "#include <stdint.h>\n",20) != 20){
+                err(5, "Error writing");
+        }
+
+        if(write(fd2, "uint32_t arrN = ",16) != 16){
+                err(5, "Error writing");
+        }
+
+        dprintf(fd2, "%d", arrN);
+
+//      if(write(fd2, &arrN, sizeof(arrN)) != sizeof(arrN)){
+//              err(5, "Error writing");
+//      }
+
+        if(write(fd2, ";\nuint16_t arr = {\n", 19) != 19){
+                err(5, "Error writing");
+        }
+
+        ssize_t bytes_read;
+        uint16_t buf;
+
+        while((bytes_read = read(fd1, &buf, sizeof(buf))) > 0){
+                if(write(fd2, &buf, sizeof(buf)) != sizeof(buf)){
+                        err(5, "Error writing");
+                }
+                if(write(fd2, ",\n", 2) != 2){
+                        err(5, "Error writing");
+                }
+        }
+
+        if(bytes_read == -1){
+                err(6, "Error readind");
+        }
+
+        if(write(fd2, "}\n", 2) != 2){
+                err(5, "Error writing");
+        }
+
+
+        close(fd1);
+        close(fd2);
+
+        exit(0);
+}
+
+
+
+зад.68
+#include <err.h>
+#include <unistd.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+
+//cat file | sort
+//   pfd[1]  pfd[0]
+//pipe -------->
+
+int main(int argc, char* argv[]){
+
+        if(argc != 2){
+                errx(1, "We need one argument");
+        }
+
+        int pfd[2];
+        if(pipe(pfd) < 0){
+                err(2, "Error pipe");
+        }
+
+        pid_t p = fork();
+
+        if(p < 0){
+                err(3, "Error fork");
+        }
+        else if(p == 0){
+                close(pfd[0]);
+                if(dup2(pfd[1],1) < 0){
+                        err(4, "Error dup2");
+                }
+                if(execlp("cat", "cat", argv[1], (char*)NULL) < 0){
+                        err(5, "Error execlp");
+                }
+        }
+
+        close(pfd[1]);
+        if(dup2(pfd[0], 0) < 0){
+                err(4, "Error dup2");
+        }
+        if(execlp("sort", "sort", (char*)NULL) < 0){
+                err(5, "Error execlp");
+        }
+
+
+        wait(NULL);
+        exit(0);
+}
+
+
+зад.69
+
+#include <err.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <string.h>
+
+
+int main(void){
+
+        while(true){
+                char buf[1024];
+                ssize_t bytes_read;
+
+                if((bytes_read = read(0, &buf, sizeof(buf))) < 0){
+                        err(1, "Error reading");
+                }
+
+                buf[bytes_read - 1] = '\0';
+
+                if(strcmp(buf, "exit") == 0){
+                        break;
+                }
+
+                pid_t p = fork();
+
+                if(p < 0){
+                        warn("Error fork");
+                        continue;
+                }
+                else if(p == 0){
+                        if(execlp(buf, buf, (char*)NULL) < 0){
+                                warn("Error execpl");
+                                continue;
+                        }
+                }
+
+                wait(NULL);
+        }
+
+        exit(0);
+}
+
+зад.70
+
+#include <err.h>
+#include <unistd.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+
+
+// cut -d ':' -f 7 /etc/passwd | sort | uniq -c | sort -n -k 1,1
+//                          ------>  ------>  ----->
+//                        a[1] a[0] b[1] b[0] c[1] c[0]
+
+int main(void){
+        int a[2];
+        if(pipe(a) < 0){
+                err(1, "Error pipe");
+        }
+
+        pid_t p = fork();
+        if(p < 0){
+                err(2, "Error fork");
+        }
+        else if(p == 0){
+                close(a[0]);
+                if(dup2(a[1],1) < 0){
+                        err(3, "Error dup2");
+                }
+                if(execlp("cut", "cut", "-d:", "-f7", "/etc/passwd", (char*)NULL) < 0){
+                        err(4,"Error execlp");
+                }
+        }
+
+        close(a[1]);
+
+        int b[2];
+        if(pipe(b) < 0){
+                err(1, "Error pipe");
+        }
+
+        pid_t q = fork();
+        if(q < 0){
+                err(2, "Error fork");
+        }
+        else if(q == 0){
+                close(b[0]);
+                if(dup2(a[0],0) < 0){
+                        err(3, "Error dup2");
+                }
+
+                if(dup2(b[1],1) < 0){
+                        err(3, "Error dup2");
+                }
+
+                if(execlp("sort", "sort", (char*)NULL) < 0){
+                        err(4, "Error execlp");
+                }
+        }
+
+        close(b[1]);
+        close(a[0]);
+
+        int c[2];
+
+        if(pipe(c) < 0){
+                err(1, "Error pipe");
+        }
+
+        pid_t r = fork();
+
+        if(r < 0){
+                err(2,"Error fork");
+        }
+        else if(r == 0){
+                close(c[0]);
+
+                if(dup2(b[0],0) < 0){
+                        err(3, "Error dup2");
+                }
+
+                if(dup2(c[1],1) < 0){
+                        err(3, "Error dup2");
+                }
+
+                if(execlp("uniq", "uniq", "-c", (char*)NULL) < 0){
+                        err(4, "Error execlp");
+                }
+        }
+
+        close(b[0]);
+        close(c[1]);
+
+        if(dup2(c[0], 0) < 0){
+                err(3, "Error dup2");
+        }
+
+        if(execlp("sort", "sort", "-n", "-k1,1", (char*)NULL) < 0){
+                err(4, "Error execlp");
+        }
+
+
+        exit(0);
+}
+
+зад.71
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
+
+
+int main(int argc, char* argv[]){
+        const char* cmd = "echo";
+
+        if(argc == 2){
+                if(strlen(argv[1]) > 4){
+                        errx(1, "Wrong format command");
+                }
+
+                cmd = argv[1];
+        }
+
+        int ready = 0;
+        char c;
+        int change = 0;
+        char arr[2][5];
+        int i = 0;
+        int notFinish = 0;
+        while(read(0, &c, sizeof(c)) > 0){
+                if((c == 0x20 || c == 0x0A) && (change == 0)){
+                        change = 1;
+                        i = 0;
+                        continue;
+                }
+
+                if((c == 0x20 || c == 0x0A) && (change == 1)){
+                        ready = 1;
+                }
+
+                if(ready == 0){
+
+                        if(i == 4){
+                                errx(2, "Wrong format niz");
+                        }
+
+                        arr[change][i] = c;
+                        notFinish = 1;
+                        i++;
+                }
+                else
+                {
+                        pid_t p = fork();
+                        if(p < 0){
+                                err(3, "Error fork");
+                        }
+
+                        if(p == 0){
+                                if(execlp(cmd, cmd, arr[0], arr[1], (char*)NULL) < 0){
+                                        err(4, "Error exec");
+                                }
+                        }
+                        wait(NULL);
+                        change = 0;
+                        ready = 0;
+                        i = 0;
+                        notFinish = 0;
+                        for(int j = 0; j < 4; j++){
+                                arr[0][j] = '\0';
+                                arr[1][j] = '\0';
+                        }
+                }
+        }
+
+        if(notFinish == 1){
+                if(execlp(cmd, cmd, arr[0], (char*)NULL) < 0){
+                        err(4, "Error exec");
+                }
+        }
+
+        exit(0);
+}
+
+
+зад.72
+
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
+//find argv[1] -type f -printf "%T@ %f\n" | sort | tail -n 1 | cut -d ' ' -f 2
+//                                   a[1] a[0] b[1] b[0] c[1] c[0]
+int main(int argc, char* argv[]){
+
+        if(argc != 2){
+                errx(1, "We need 2 arguments");
+        }
+
+        int a[2];
+
+        if(pipe(a) < 0){
+                err(2, "Error pipe");
+        }
+
+        pid_t p = fork();
+        if(p < 0){
+                err(3, "Error fork");
+        }
+        else if(p == 0){
+                close(a[0]);
+
+                if(dup2(a[1],1) < 0){
+                        err(4, "Error dup2");
+                }
+
+                if(execlp("find", "find", argv[1], "-type", "f", "-printf", "%T@ %f\n", (char*)NULL) < 0){
+                        err(5, "Error execlp");
+                }
+        }
+
+        close(a[1]);
+
+        int b[2];
+        if(pipe(b) < 0){
+                err(2, "Error pipe");
+        }
+
+        pid_t q = fork();
+
+        if(q < 0){
+                err(3,"Error fork");
+        }
+        else if(q == 0){
+                close(b[0]);
+                if(dup2(a[0], 0) < 0){
+                        err(4, "Error dup2");
+                }
+
+                if(dup2(b[1], 1) < 0){
+                        err(4, "Error dup2");
+                }
+
+                if(execlp("sort", "sort", (char*)NULL) < 0){
+                        err(5, "Error execlp");
+                }
+        }
+
+        close(a[0]);
+        close(b[1]);
+
+        int c[2];
+        if(pipe(c) < 0){
+                err(2, "Error pipe");
+        }
+
+        pid_t r = fork();
+
+        if(r < 0){
+                err(3, "Error fork");
+        }
+        else if(r == 0){
+                close(c[0]);
+
+                if(dup2(b[0], 0) < 0){
+                        err(4, "Error dup2");
+                }
+
+                if(dup2(c[1], 1) < 0){
+                        err(4, "Error dup2");
+                }
+
+                if(execlp("tail", "tail","-n1",(char*)NULL) < 0){
+                        err(5, "Error execlp");
+                }
+        }
+
+        close(b[0]);
+        close(c[1]);
+
+        if(dup2(c[0], 0) < 0){
+                err(4, "error dup2");
+        }
+
+        if(execlp("cut", "cut", "-d ", "-f2", (char*)NULL) < 0){
+                err(5, "error execlp");
+        }
+
+        exit(0);
+}
+
+зад.73
+#include <stdint.h>
+#include <err.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <stdio.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc < 3){
+                errx(1, "We need at least 2 arguments");
+        }
+
+        if(strlen(argv[1]) > 1){
+                errx(2, "Wrong format param 1");
+        }
+
+        int sec = argv[1][0] - '0';
+
+        if(sec < 0 || sec > 9){
+                errx(2, "Wrong format param 1");
+        }
+
+        int fd = open("run.log", O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
+    if(fd < 0){
+                err(3, "Error opening");
+        }
+
+        int cnt = 0;
+
+        while(1){
+
+                int start = 0;
+                int finish = 0;
+                int exit_status = 0;
+
+                pid_t p = fork();
+                if(p < 0){
+                        err(4, "Error fork");
+                }
+
+                if(p == 0){
+                        start = time(NULL);
+                        if(execvp(argv[2], argv + 2) < 0){
+                                err(5, "Error execvp");
+                        }
+                }
+
+                int status;
+                wait(&status);
+
+                finish = time(NULL);
+
+                if(WIFEXITED(status)){
+                        exit_status = WEXITSTATUS(status);
+                }
+                else{
+                        exit_status = 0;
+                }
+
+                dprintf(fd, "%d", start);
+
+        //      if(write(fd, &start, sizeof(start)) != sizeof(start)){
+        //              err(6, "Error writing");
+        //      }
+
+                if(write(fd, " ",1) != 1){
+                        err(6, "Error writing");
+                }
+
+                dprintf(fd, "%d", finish);
+
+//              if(write(fd, &finish, sizeof(finish)) != sizeof(finish)){
+//                      err(6, "Error writing");
+//              }
+
+                if(write(fd, " ", 1) != 1){
+                        err(6, "Error writing");
+                }
+
+                dprintf(fd, "%d", exit_status);
+
+        //      if(write(fd, &exit_status, sizeof(exit_status)) != sizeof(exit_status)){
+        //              err(6, "Error writing");
+        //      }
+
+                if(write(fd, "\n", 1) != 1){
+                        err(6, "Error writing");
+                }
+
+                int d = finish - start;
+
+                if(exit_status != 0 && d < sec){
+                        if(cnt == 1){
+                                close(fd);
+                                exit(0);
+                        }
+                        else
+                        {
+                                cnt = 1;
+                        }
+                }
+                else{
+                        cnt = 0;
+                }
+        }
+}
+
+
+зад.74
+foo.c
+#include <err.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc != 2){
+                errx(1, "We need one argument");
+        }
+
+        if(mkfifo("./myfifo", 0666) < 0){
+                err(2, "Error mkfifo");
+        }
+
+        int fd = open("./myfifo", O_WRONLY);
+        if(fd < 0){
+                err(3, "Error opening");
+        }
+
+        dup2(fd, 1);
+
+        if(execlp("cat", "cat", argv[1], (char*)NULL) < 0){
+                err(4, "Error exec");
+        }
+
+        exit(0);
+}
+
+bar.c
+#include <err.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
+
+int main(int argc, char* argv[]){
+        if(argc != 2){
+                errx(1, "We need one argument");
+        }
+
+        int fd = open("./myfifo", O_RDONLY);
+        if(fd < 0){
+                err(2, "Error opening");
+        }
+
+        dup2(fd, 0);
+
+        if(execlp(argv[1], argv[1], (char*)NULL) < 0){
+                err(3, "Error exec");
+        }
+
+        exit(0);
+}
+
+зад.75
+#include <err.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        int pf[2];
+        if(pipe(pf) < 0){
+                err(3, "Error pipe");
+        }
+
+        pid_t p = fork();
+        if(p < 0){
+                err(4, "Error fork");
+        }
+
+        if(p == 0){
+                close(pf[0]);
+                if(dup2(pf[1], 1) < 0){
+                        err(5, "Error dup2");
+                }
+                if(execlp("cat", "cat", argv[1], (char*)NULL) < 0){
+                        err(6, "Error execlp");
+                }
+        }
+
+        close(pf[1]);
+
+        int fd = open(argv[2], O_CREAT | O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+        if(fd < 0){
+                err(2, "Error opening");
+        }
+
+        ssize_t bytes_read;
+        uint8_t buf;
+
+        while((bytes_read = read(pf[0], &buf, sizeof(buf))) > 0){
+                if(buf == 0x7D){
+                        if(read(pf[0], &buf, sizeof(buf)) < 0){
+                                err(7, "Error reading");
+                        }
+                        buf = buf ^ 0x20;
+                        if(write(fd, &buf, sizeof(buf)) != sizeof(buf)){
+                                err(8, "Error writing");
+                        }
+                }
+                else if(buf == 0x55){
+                        continue;
+                }
+                else{
+                        if(write(fd, &buf, sizeof(buf)) != sizeof(buf)){
+                                err(8, "Error writing");
+                        }
+                }
+        }
+
+        if(bytes_read == -1){
+                err(7, "Error reading");
+        }
+
+        close(pf[0]);
+        close(fd);
+
+        exit(0);
+}
+
+
+зад.76
+
+#include <err.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+
+#define N 8
+
+int main(int argc, char* argv[]){
+        if(argc != 2){
+                errx(1, "We need one argument");
+        }
+
+        struct data{
+                char name[8];
+                uint32_t offset;
+                uint32_t length;
+        }__attribute__((packed));
+
+        struct data input;
+
+        struct stat st;
+        if(stat(argv[1], &st) < 0){
+                err(2, "Error stat");
+        }
+
+        if(st.st_size % sizeof(input) == 0){
+                errx(3, "Wrong format file");
+        }
+
+        int n = st.st_size / sizeof(input);
+        if(n > N){
+                errx(3, "Wrong format file");
+        }
+
+        struct data array[N];
+
+        int fd = open(argv[1], O_RDONLY);
+        if(fd < 0){
+                err(4, "Error opening");
+        }
+
+        int i;
+        int p[2];
+        if(pipe(p) < 0){
+		err(9, "Error pipe");
+	}
+
+        pid_t x;
+        for(i = 0; i < n; i++ ){
+                if(read(fd, &array[i], sizeof(input)) != sizeof(input)){
+                        err(5, "Error reading");
+                }
+
+                x = fork();
+                if(x == -1){
+                        err(6, "Error fork");
+                }
+
+                if(x == 0){
+                        break;
+                }
+        }
+
+
+        if(x == 0){
+                close(p[0]);
+
+                uint16_t result_child = 0;
+                uint16_t buf = 0;
+
+                int cur = open(array[i].name, O_RDONLY);
+                if(cur < 0){
+                        err(4, "Error opening");
+                }
+
+                struct stat st1;
+                if(stat(array[i].name, &st1) < 0){
+                        err(2, "Error stat");
+                }
+
+                if(st1.st_size % sizeof(uint16_t) != 0){
+                        errx(3, "Wrong format file");
+                }
+
+                if(lseek(cur, array[i].offset * sizeof(uint16_t), SEEK_SET) < 0){
+                        err(7, "Error lseek");
+                }
+
+                for(uint32_t j = 0; j < array[i].length; j++){
+                        if(read(cur, &buf, sizeof(buf)) != sizeof(buf)){
+                                err(5, "Error reading");
+                        }
+                        result_child ^= buf;
+                }
+
+                if(write(p[1], &result_child, sizeof(result_child)) != sizeof(result_child)){
+                        err(8, "Error writing");
+                }
+
+                exit(0);
+        }
+
+        close(p[1]);
+        uint16_t result = 0;
+        uint16_t buff;
+
+        for(int j = 0; j < n; j++){
+                if(read(p[0], &buff, sizeof(buff)) != sizeof(buff)){
+                        err(5, "Error reading");
+                }
+
+                result ^= buff;
+        }
+
+        printf("result: %04x", result);
+
+        exit(0);
+}
+
+зад.78
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <semaphore.h>
+#include <string.h>
+#include <unistd.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc != 3){
+                errx(1, "We need 2 arguments");
+        }
+
+        if(strlen(argv[1]) > 1){
+                errx(5, "[0-9] numeber needed");
+        }
+
+        if(strlen(argv[2]) > 2){
+                errx(5, "[0-9] number needed");
+        }
+
+        int n = argv[1][0] - '0';
+        int d = argv[2][0] - '0';
+
+        if(n < 0 || n > 9){
+                errx(2, "We need number in [0,9]");
+        }
+
+        if(d < 0 || d > 9){
+                errx(2, "We need numebr in [0,9]");
+        }
+
+        int cw[2];
+        int pw[2];
+
+        char cok;
+        char pok;
+        char nia=42;
+
+        if(pipe(cw) < 0){
+                err(5, "Error pipe");
+        }
+
+        if(pipe(pw) < 0){
+                err(5, "Error pipe");
+        }
+
+        pid_t p = fork();
+
+        if(p < 0){
+                err(3, "Error fork");
+        }
+
+        if(p == 0){
+
+                close(cw[1]);
+                close(pw[0]);
+                for(int i = 0; i < n; i++){
+                //      wait();
+
+                        read(cw[0], &cok, sizeof(cok));
+                        if(write(1, "DONG\n", 5) != 5){
+                                err(4, "Error writinig");
+                        }
+
+                        write(pw[1], &nia, sizeof(nia));
+
+                }
+
+                exit(0);
+        }
+
+        for(int i = 0; i < n; i++){
+
+                close(cw[0]);
+                close(pw[1]);
+
+                if(write(1, "DING\n", 5) != 5){
+                        err(4, "Error writing");
+                }
+        //      wait();
+
+                write(cw[1], &nia, sizeof(nia));
+                read(pw[0], &pok, sizeof(pok));
+                sleep(d);
+        }
+
+        wait(NULL);
+        exit(0);
+}
+

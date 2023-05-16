@@ -1,0 +1,30 @@
+=>Text editing
+vi/vim
+vi -> The Visual Editor
+vim -> Vi IMproved
+
+Има 2mode-a
+	=command
+	=insert
+Като отворим vim сме в command mode 
+С is. влизаме в insert mode (като натискаме "нещо", то ще се появи на екрана)
+За да се върнем в command mode, натискаме escape
+
+Във vim се движим чрез h,g,k,l
+h ляво 
+l дясно
+g долу
+k горе
+или стрелките
+
+i = insert - въвежда се пред
+a = append - въвежда след append-натото
+
+:w 	- да запишем съдържание
+:q 	- излизаме от vim
+:wq 	- записва и излиза от vim
+
+escape :q ! - излиза БЕЗ да запише
+
+x 	-в command mode -> трием символа на курсора
+dd 	-в command mode -> трием целия ред

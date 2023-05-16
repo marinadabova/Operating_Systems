@@ -1,0 +1,79 @@
+=>Displaying binary files
+
+
+
+strings <name> -принти всички стрингове, които се намират в подадения binary file
+
+
+xxd <name> - показва xdump на байтовете въте 16тично по 2ки
+	   -разделя се на 3 секции
+		1)показва отлистването на 1вия байт от тази група от началото на файла –също в hex
+		2)показва представянето на символите в този файл 16тично
+		3)ASCII представяне
+
+00000000      2550 4446       %PDF
+		%=25
+		P=50
+		D=44
+		F=46
+
+	    - с . за символи/байтове, които НЕ могат да се интерпретират като текст
+!!! ако  прочетем binary file с cat, файла ще се "намаже", може да ползваме командата reset, ако това се случи
+
+
+xargs – подаваме някакви "неща" , xargs ги изпълнява като аргументи на някаква команда
+
+xargs -n <брой> echo 	–ще ги дели на порции по 2
+xargs -I { } 		– I-то е place holder
+
+пример: xargs -I { } cp {} d1
+
+!!Идеята е, ако имаме да изпълним някаква команда много пъти за някакъв вход, то може да използваме xargs
+-По default, ако е се попаде команда на xargs,то тя е echo!
+
+=>Searching the file system
+
+find 				–намира и листва файловете рекурсивно
+find. 				–намира и листва файловете рекурсивно в текущата дир
+find /home 			-намира и листва файловете рекурсивно в дадената дир
+find /home -name <name> 	-намира всички файлове с даденото име
+find /home -type d 		–намира всички файлове с тип дир
+find /home -type f  		-намира всички файлове с тип файл
+find /home -type d -name <name>
+find /home -type f-name <name>
+
+->Operators
+-o = or
+-a = and  пo default 
+
+пример: find /home -type f -o -name <name>
+-> Actions
+-print e default-ния action
+
+find <dir> -name <name> -print  		-принти резултата
+find <dir> -name <name> -ls 			–принти резултата във формата подобен на ls -l
+find <dir> -name <name> -print 0 		-принти 0леви симноли между разултатите, които е изкарала командата
+find <dir> -name <name> -exec 			-подаваме команда която да се изпълни за вс файл който намери командата
+find . -printf '..' 				–работи като -с на stat
+find ~ -maxdepth 1 -type d 			-връща едно ниво надолу
+find ~ -mindepth 1 -type d 			-обратното; връща едно ниво нагоре
+find / -type d ! -readable			-принти тези, до които нямаме достъп
+find . -type f -name "a*" 			-* мачва 0 или > символи
+find . -type f -name "a*" -exec cp{} d1\;	-копираме в d1
+find . -type f -name "a*" -ls			-листва тези файлове
+find . -type f -name "a*" -delete		-изтрива ги
+
+
+примери: 
+1)find /hoe -name bar -exec stat{}\; - всеки мачнат файл го сложи тук"stat{}\"
+
+2)find . -printf '%\n'  	-броя линкове
+  find . -printf '%f\n' 	-име на файл
+  find . -printf '%p\n' 	-целия път до файл
+
+3)find ~ -maxdepth 2 -mindepth 1
+
+./d1   	 дълбочина 1
+./d1/a2  дълбочина 2 
+
+4)find . -type f -name "a*"    (a1,a2,a3,asdf-> a* ги мачва)

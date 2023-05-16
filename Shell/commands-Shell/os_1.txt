@@ -1,0 +1,160 @@
+OS-upr1
+
+=>Терминали:
+  -серийни
+  -виртуални
+
+whoami		-показва потребителското име
+who 		-показва всички user-и, логнати в момента
+id 		-показва id-to на user-a
+
+	uid=...()    gid=...()    groups=...()
+	вътрешен     групов id    член на група 
+	номер id       		   с id
+
+
+su 		-сменя user-a
+sudo
+clear		-изчиства екрана
+
+
+=>HELP команда
+<command> --h
+<command> -h
+
+=>MAN команда:
+man <command>
+man[section] <command>
+
+с q 	->exit от man страницата
+с "/" 	->търсене 
+с "n" 	->местене между различните страници
+
+whatis <command> 	-описание/description
+=man -f <command>	
+
+apros <command>		-търсене/search
+= man -k <command>
+
+
+=>File managment and manipulation
+(Файлове и директории)
+
+FHS -стандарт
+
+       absolute path				    relative path
+     пълен, абсолютен път 			релативен, относителен път
+	/home/itf				 ./ ../itf/p
+
+
+pwd 	-принтира пълния(абсолютен)път до директорията
+cd 	-сменя директория
+cd/home	-връща в home директория
+cd ~ 	-връща в моята home директория
+cd _ 	-връща в предишната/последната директория
+cd. 	-синоним на текущата директория
+cd.. 	-връща в горна(parent) директория
+cd../..
+
+/home/students/s62503
+
+cd.. = /home/students
+cd ../../s62503 = да отидем в s62503
+
+"~" е синоним на home директорията на потребителя
+
+
+=>Команда ls:
+
+ls	-показва съдържанието, листва всички файлове и директории, намиращи се в текущата директория
+ls -a 	-показва всички файлове и hidden файлове
+ls -A 	-показва всички файлове и hidden файлове без . и ..
+ls -l 	-показва в дълъг формат данните за файловете 
+ls -lh 	-показва в дълъг формат данните за файловете; размерите се виждат с мерни единици
+ls -d<name> -показва инфо за директориите
+
+ls -lha
+
+
+=>Команда touch:
+touch <name> -създава файл
+
+touch hello.txt или touch hello
+
+
+=>Команда mkdir:
+mkdir <name> създава директория
+
+mkdir -p <./dir1/dir2/dir3> -създава цяло дърво от дирерктории 
+mkdir -m <permission> <name> -създава директория с определен пермишън
+
+
+=>Команда rm:
+
+rmdir <name> 	-изтрива празна директория;ако има нещо в нея не може да я изтрие
+rm		-трие файлове
+rm*		-трием всички файлове в директорията
+rm <name> 	-трием файл с име
+
+//не изпълнявам
+rm -r <name> 	-трием цяла директория
+rm -f
+rm -rf 		-затрива всичко без позволение 
+//
+
+
+=>File permissions
+
+3 групи права 
+	-owner
+	-group
+	-other
+
+
+r read    -4  100b
+w write   -2  010b
+x execute -1  001b
+
+wx=3
+rw=6
+rx=5
+rwx=7
+
+
+d rwx   r_x    r_x
+  user  group  other
+   7      5      5
+
+
+touch -write
+ls    -read
+cd    -execute
+
+=>Special permission
+	-UID vs GID
+
+
+chown <uid, > <gid, > <file> -променяне на uid и gid
+
+chown <uid> <file> -променяне на uid 
+
+chown <gid> <file> -променяне на gid
+chgro root == chown:root
+
+	-SUID
+set UID upon execution(SUID)
+->on files
+Всяка команда е файл, който ние изпълняваме(например passwd)
+
+	-SGID
+set GID upon execution (SGID)
+->on directories
+
+SGID-то като флаг -> всички файлове,създадени в директорията със сетнат SGID ще наследят същия group owner като директорията, където е сетнато SGID-то
+
+	-sticky bit
+->on directories
+Отнася се за права за триене на директории
+Върху файлове- не
+Върху директории- казва, че НЕ могат да се изтрият файловете 
+
