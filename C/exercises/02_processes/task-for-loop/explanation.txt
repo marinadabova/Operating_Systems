@@ -1,0 +1,9 @@
+0: I'm parent PID: 11146 PPID: 32763
+0: I'm child PID 11147 PPID: 11146
+ 1: I'm parent PID: 11147 PPID: 11146
+ 1: I'm parent PID: 11146 PPID: 32763
+ 1: I'm child PID 11148 PPID: 11147
+ 1: I'm child PID 11149 PPID: 11146
+
+Числата отпред показват итерацията
+
