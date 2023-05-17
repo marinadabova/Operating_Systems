@@ -1,0 +1,117 @@
+Помощни команди:
+processes
+
+execl(3) 
+int execl(const char *path, const char *arg, ... /* (char  *) NULL */);
+Замества текущия образ на просеца с нов образ на процеса
+#include <unistd.h>
+
+Подаваме път( /bin/date -подаваме пътя към командата), името на командата, последен аргумент е NULL
+
+
+exec() функцията връща само ако има грешка (ако има err() )
+При грешка извежда -1
+
+execl overwrite-ва printf, връща и приключва
+
+ако не знаем къде е пътя- тогава може да използваме:
+
+execlp(3) 
+int execlp(const char *file, const char *arg, ... /* (char  *) NULL */);
+
+той автоматично подава пътя
+Подаваме име на команда, параметри, NULL
+
+exelp("ls","ls", "-l", argv[l],NULL)
+
+
+fork(2) 
+pid_t fork(void);
+
+Създава child process
+не се извикват параметри
+parent pid-a създава child и така ще може да реферираме към процеси
+
+#include <unistd.h>
+
+ще може да проследим кой процес се е изпълнил на база пид-а
+
+пример:pid_t a fork(void)
+
+ако a е -1 има грешка
+ако е 1 сме в нашия parent
+ако е 0 сме в child
+
+проверки
+if(a==-1)
+if(a>0) за parent
+if(a==0) за child
+
+
+wait(2) 
+pid_t wait(int *wstatus);
+Чака промяна в състоянеето на child процеса
+#include <sys/wait.h>
+
+int status;
+if(a>0){
+wait(&status);
+...
+else
+...
+wait(0)-чака child process да завърши
+най-добре със статуса да се дефинира горе
+
+
+При успех връща pid of the terminated child
+При неуспех връща -1
+
+
+waitpid(2)
+pid_t waitpid(pid_t pid, int *wstatus, int options);
+
+
+int status;
+waitpid(pid,&status,0);-чака определен pid
+if (WAKESTATUS ???nqkakvi proverki vij man
+
+<-1 meaning  wait for any child process whose process group ID is
+              equal to the absolute value of pid.
+-1  wait for any child process
+0   meaning wait for any child process whose process group ID  is
+              equal  to that of the calling process at the time of the call
+              to waitpid().
+
+>0  meaning wait for the child whose process ID is equal  to  the
+              value of pid.
+
+
+При успех връща pid на детето, чийто статус е променен
+При неуспех връща -1
+
+
+
+----------------
+---
+p=fork()
+
+if p>0
+	wait(0)
+	printf("foobar")
+else if p==0
+	exit(0)
+
+
+това принти първо чайлда?
+
+
+----
+getpid(2) 
+pid_t getpid(void);
+pid_t getppid(void);
+
+взима pid и ppid
+Тези функции са винаги успешни
+
+
+когато има fork в цикъл при всяко викане на fork се създава нов процес -parent и child процес
