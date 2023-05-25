@@ -37,10 +37,29 @@ if [[ ! -d $1 || ! -d $2 ]]; then
         exit 2
 fi
 
-if [[ "$(whoami)" = "root"  ]]; then
-
-        find $1 -type f 2> /dev/null | grep "$3*" | xargs -I {} mv {} $2
-else
-        echo "Yo have no permission"
+if [[ ! $3 =~ ^[a-zA-Z]+$ ]]; then
+        echo "Third argument should be string"
         exit 3
 fi
+
+checkEmptyDir=$(find $2 -maxdepth 0 -empty)
+if [[ -z $checkEmptyDir ]]; then
+        echo "Not empty dir"
+        exit 4
+fi
+#if [[ "$(whoami)" != "root"  ]]; then
+#       echo "You do not have permission"
+#       exit 5
+#fi
+
+while read file; do
+        no_prefix_path="$(echo $file | sed "s|$1||g")"
+        #echo "$no_prefix_path" -> /foof.txt
+        mkdir -p "$2$(dirname $no_prefix_path)"
+        #echo "$2$(dirname $no_prefix_path)" //concatenate the two
+
+        mv $file "$2$no_prefix_path"
+        # cp $file "$2$no_prefix_path"
+
+
+done< <(find $1 -type f 2>/dev/null | egrep "$3")
