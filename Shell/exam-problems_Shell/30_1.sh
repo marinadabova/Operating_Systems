@@ -13,11 +13,11 @@ fi
 T=$(mktemp)
 
 while read friend; do
-        count=$(find $1 -mindepth 4 -maxdepth 4 -type f 2>dev/null | egrep ".*/${friend}/[0-9]+-[0-9]+-[0-9]+-[0-9]+-[0-9]+-[0-9]+\.txt" | xargs cat | wc -l)
+        count=$(find $1 -mindepth 4 -maxdepth 4 -type f 2>/dev/null | egrep ".*/${friend}/[0-9]+-[0-9]+-[0-9]+-[0-9]+-[0-9]+-[0-9]+\.txt" | xargs cat | wc -l)
         echo "$count ${friend}" | cat >> $T
 
 done< <(find $1 -mindepth 3 -maxdepth 3 -type d -printf "%f\n" |sort |uniq)
 
-cat $T | sortn -n |tail -n 10
+cat $T | sort -n |tail -n 10
 
 rm -- $T
