@@ -38,3 +38,4 @@ do
                 sed -E -i "s/^(.*\.)([[:space:]]+)([[:digit:]]*)([[:space:]0-9]+)/\1\2$serial\4/g" $file
         fi
 
+done
