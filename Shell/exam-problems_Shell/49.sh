@@ -78,15 +78,20 @@ if [[ ! -z $diagnostic_dest ]];then
         diag_base=$diagnostic_dest
 else
         diag_base=$ORACLE_HOME
-
+diag_dir=diag_base/diag;
 if [[ $user == "oracle" ]]; then
-        sum_rdbms=$(find $diag_base/diag/rdms -maxdepth 2 -mindepth 2 -type f -regextype egrep -regex "^.*\_[0-9]+\.(trc|trm)$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
+        sum_rdbms=$(find $diag_dir/rdms -maxdepth 2 -mindepth 2 -type f -regextype egrep -regex "^.*\_[0-9]+\.(trc|trm)$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
         echo "rdbms: $sum_rdbms"
 
 elif [[ $user == "grid" ]]; then
-        sum_crs=$(find $diag_base/diag/crs/$name_host/crs/trace  -type f -regextype egrep -regex "^.*\_[0-9]+\.(trc|trm)$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
+        sum_crs=$(find $diag_dir/crs/$name_host/crs/trace  -type f -regextype egrep -regex "^.*\_[0-9]+\.(trc|trm)$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
          echo "crs: $sum_crs"
 
-        sum_tnslsnr=$(find $diag_base/diag/$name_host -maxdepth 2 -type f -regextype egrep -regex "^.*\_[0-9]+\.(xml|log)$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
-        echo "tnslsnr:: $sum_tnslnsr"
+        #sum_tnslsnr=$(find $diag_dir/$name_host -maxdepth 2 -type f -regextype egrep -regex "^.*\_[0-9]+\.(xml|log)$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
+
+        sumAlert=$(find $diag_dir/tnslnsr/$name_host/*/alert -type f -regextype egrep -regex "^.*\_[0-9]+\.xml$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
+        sumTrace=$(find $diag_dir/tnslnsr/$name_host/*/trace -type f -regextype egrep -regex "^.*\_[0-9]+\.log$" -mtime +"$1" -printf "%k\n"| awk '{sum+=$1}END{print sum}')
+        sum_tnslnsnr=$(echo "$sumAlert + $sumTrace" | bc)
+
+echo "tnslsnr:: $sum_tnslnsr"
 fi
