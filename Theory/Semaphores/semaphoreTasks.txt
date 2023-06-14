@@ -1,0 +1,344 @@
+92 Зад. 92 2016-SE-01 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)	
+    	process P 			   	process Q 
+	p_1					q_1
+	s1.signal() 				s1.wait()
+	p_2 			     		q_2 
+	s2.wait()				s2.signal()
+	p_3 			      		q_3 
+
+
+93 ________________________________
+	semaphore s1
+	s1.init(0)
+   	 process P 			   	process Q 			process R 
+	p_1					q_1				    r_1
+	s1.signal()				s1.wait()			    s1.wait()
+						s1.signal()		    		s1.signal()
+	p_2 			     		q_2 				    r_2
+	p_3 			      		q_3 				    r_3
+
+94 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)
+   	 process P 			   process Q 
+	p_1					q_1		
+	s1.signal()				s2.signal()
+	s2.wait()				s1.wait()
+	p_2 			     		q_2 		
+
+95 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)
+  	  process P 			   process Q 
+						s1.wait()
+	p_1					q_1
+	s1.signal()				s2.signal()
+	s2.wait()				s1.wait()
+	p_2 			     		q_2 
+	s1.signal()				s2.signal()
+	s2.wait()				s1.wait()
+	p_3 			      		q_3 
+	s1.signal()
+
+96 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)	
+   	 process P 				process Q 			process R 
+	p_1					q_1				    r_1
+	s1.signal()				s1.wait()			    s1.wait()
+						s1.signal()		   	 s1.signal()
+	p_2 			     		q_2 				    r_2
+	s2.wait()								    s2.signal()
+	p_3 			      		q_3 				    r_3
+
+97 ________________________________
+	semaphore s1,  s2. s3
+	s1.init(0)
+	s2.init(0)
+	s3.init(0)
+    	process P 			      process Q 			 process R 
+	p_1					q_1				    r_1
+	s1.signal()				s2.signal()		   	  s3.signal()		
+	s3.wait()				s1.wait()			    s2.wait()
+	p_2 			     		q_2 				    r_2
+	s1.signal()				s2.signal()		    	   s1.wait()
+										    s2.wait()
+	p_3 			      		q_3 				    r_3
+
+
+98 ________________________________
+	semaphore s1, s2
+	s1.init(1)
+	s2.init(0)
+   	 process P 			   process Q 				process R 
+	p_1					q_1				    r_1
+	s1.wait()				s1.wait()			    s2.wait()
+	p_2 			     		q_2 				    r_2
+	s2.signal()				s2.signal()			    s1.signal()
+	p_3 			      		q_3 				    r_3
+
+99 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)
+	s3.init(0)
+  	  process P 			   process Q 				process R 
+	p_1					q_1				    r_1
+	s1.signal()				s1.wait()			    s1.wait()
+						s1.signal()		   	 s1.signal()
+	p_2 			     		q_2 				    r_2
+	s2.wait()				s2.signal()		   	 s3.signal()
+	s3.wait()
+	p_3 			      		q_3 				    r_3
+
+100 ________________________________
+	semaphore s1, s2, s3
+	s1.init(0)
+	s2.init(0)
+	s3.init(0)
+    	process P 			   	process Q 			    process R 
+						s1.wait()			    s2.wait()
+	p_1					q_1				    r_1
+	s1.signal()				s2.signal()		   	    s3.signal()
+	s3.wait()				s1.wait()			    s2.wait()
+	p_2 			     		q_2 				    r_2
+	s1.signal()				s2.signal()
+
+101 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)
+    	 process P 			       process Q
+	p_1					q_1
+	s1.signal()				s2.signal()
+	s2.wait()				s1.wait()
+	p_2 			     		q_2
+	s1.signal()				s2.signal()
+	s2.wait()				s1.wait()
+	p_3 			     		q_3
+
+102 ________________________________
+	semaphore s1, s2, s3
+	s1.init(0)
+	s2.init(0)
+	s3.init(0)
+   	 process P 			  	process Q 			   process R 
+	p_1					q_1				    r_1
+	s1.signal()				s2.signal()		    	    s3.signal
+	s2.wait()				s1.wait()			    s1.wait()
+	s2.signal()				s1.signal()		   	    s1.signal()
+	s3.wait()				s3.wait()			    s2.wait()
+	s3.signal()				s3.signal()		    	    s2.signal()
+	p_2 			     		q_2 				    r_2
+
+103 ________________________________
+	semaphore s1.s2
+	s1.init(0)
+    	process P 			   	process Q 			process R 
+	p_1					q_1				    r_1
+	s1.signal()				s1.wait()			    s1.wait()
+	p_2 			     		q_2 				    r_2
+	p_3 			     		q_3 				    r_3
+						s1.signal()		    	s1.signal()
+
+Processes with many copies
+
+106 ________________________________
+	semaphore s1, s2
+	s1.init(1)
+	s2.init(0)
+    	process P 			   	process Q
+	s1.wait()				s2.wait()
+	p_1					q_1
+	p_2 			     		q_2
+	s2.signal()				s1.signal()
+
+107 ________________________________
+	semaphore s1, s2, s3
+	s1.init(1)
+	s2.init(0)	
+	s3.init(0)
+
+    	process P 			   	process Q
+	s1.wait()
+	p_1					q_1
+	s2.signal()				s2.wait()
+	p_2 			     		q_2
+	s3.wait()				s3.signal()
+	p_3 			     		q_3
+	s1.signal()
+
+108 ________________________________
+	semaphore s1.s2
+	s1.init(1)
+	s2.init(0)
+	s3.init(0)
+    	process P 			   	process Q 			process R 
+	s1.wait()				s2.wait()			s3.wait()
+	p_1					q_1				r_1
+	p_2 			     		q_2 				r_2
+	s2.signal()				s3.signal()		    	s1.signal()
+
+
+109 ________________________________
+	semaphore s1.s2
+	s1.init(1)
+	s2.init(0)
+    	process P 			   	process Q 			process R		    process W 
+	s1.wait()				s1.wait()			s2.wait()		    s2.wait()
+	p_1					q_1				r_1			    w_1
+	p_2 			     		q_2 				r_2			    w_2
+	s2.signal()				s2.signal()		    	s1.signal()		    s1.signal()
+
+110 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)
+    	process P 			   process Q 				    process R 
+										    s1.wait()
+										    s1.signal()
+										    s2.wait()
+										    s2.signal()
+	p_1					q_1				    r_1
+	p_2 			     		q_2 				    r_2
+	s1.signal()			s2.signal()
+
+111 ________________________________
+	semaphore s1
+	s1.init(0)
+
+	process P 			process Q 			
+					s1.wait()	
+					s1.signal()			   
+	p_1				q_1				 
+	p_2 			     	q_2 				   
+	s1.signal()				  
+
+112 ________________________________
+	semaphore s1, s2, s3, s4
+	s1.init(1)
+	s2.init(0)
+	s3.init(1)
+	s4.init(0)
+
+    	process P 			process Q 			process R 
+	s1.wait()			s3.wait()			s4.wait()
+					s2.wait()			s2.wait()							    
+	p_1				q_1				r_1
+	p_2 			     	q_2 				r_2
+	s2.signal()			s1.signal() 			s1.signal()
+					s4.signal()			s3.signal()
+					
+------------------
+a.init(1)
+b.init(0)
+c.init(1)
+d.init(0)
+
+c.wait          a.wait          b.wait
+                d.wait          d.wait
+P               Q               R
+                c.signal        c.signal
+d.signal        b.signal        a.signal
+
+Use COUNTER
+113 ________________________________!!!!! Да се внимава с бариерата
+	semaphore s1
+	s1.init(1)
+	s2.init(0)
+	int cnt=0
+
+    	process P
+	p_1
+	s1.wait()
+	cnt=cnt+1
+	if cnt=3 	
+		s2.signal()
+	s1.signal()
+	s2.wait()
+	s2.signal()
+	p_2
+
+114 ________________________________
+	semaphore s1, s2
+	s1.init(0)
+	s2.init(0)
+ 
+   	process P 			   	process Q
+	p_1					q_1
+	s1.signal()				s2.signal()
+	s2.wait()				s1.wait()
+	s2.signal()				s1.signal()
+	p_2 			     		q_2
+	p_3 			     		q_3
+
+115 ________________________________
+	semaphore s1, s2
+	s1.init(1)
+	s2.init(0)
+ 	int count=0
+
+   	process P 			   	process Q
+	s1.wait()				s2.wait()
+	p_1					q_1
+	p_2 			     		q_2
+	s2.signal()				count++
+						if count == 2 
+								count=0
+								s1.signal()
+						else
+							s2.signal()
+
+117 ________________________________
+	semaphore s1, s2
+	s1.init(1)
+	s2.init(0)
+ 	int count1=0	
+	int count2=0
+
+   	process P 			   	process Q
+	s1.wait()				s2.wait()
+	p_1					q_1	
+	p_2 					q_2
+	count1++ 				count2++
+	if count1 == 2 				if count2 == 3 
+		count1=0 				count2=0
+		s2.signal() 				s1.signal()
+	else  					else
+		s1.signal()				s2.signal()
+	     		
+	
+
+
+118 ________________________________
+count = 0		
+semaphore	mutex1, s1,mutex2	
+mutex1.init(1)	s2.init(0)	mutex2.init(1)
+		
+while true		
+	p1	
+	mutex1.wait	
+	count++	
+	if count == N	
+		count = 0
+		s2.signal
+	mutex1.signal	
+	s2.wait	
+	mutex2.wait	
+	count++ 	
+	if count < N:	
+		s2.signal
+	else	
+		count = 0
+	mutex2.signal	
+		
+		
+	p2	
+endwhile		
+
