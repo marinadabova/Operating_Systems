@@ -112,8 +112,7 @@ elif [[ $1 == "config" ]]; then
                                                                         $1 == "Array" {name=$2} \
                                                                         $1 == "Unassigned" {name="UN"} \
                                                                         $1 == "physicaldrive" {drive=$2;print
- "SSA" slot model name drive".label SSA"slot,model,name,drive "\n" "SSA" slot model name drive".type GAUGE" }' |
-sed 's/://;s/://'
+ "SSA" slot model name drive".label SSA"slot,model,name,drive "\n" "SSA" slot model name drive".type GAUGE" }' | sed 's/://;s/://'
         done
 
 elif [[ $# -eq 0 ]]; then
@@ -122,8 +121,7 @@ elif [[ $# -eq 0 ]]; then
                 ssacli ctrl slot=$s pd all show detail | awk "$1=="Smart" {model=$3;slot=$6}
                                 $1 == "Unassigned" {name=$2}
                                 $1 == "physicaldrive" {drive=$2}
-                                $1 == "Current" {temp=$4;print "SSA" slot model name drive ".value " temp}' |
-sed 's/://;s/://'
+                                $1 == "Current" {temp=$4;print "SSA" slot model name drive ".value " temp}' | sed 's/://;s/://'
         done
 else
         echo "invalid"
