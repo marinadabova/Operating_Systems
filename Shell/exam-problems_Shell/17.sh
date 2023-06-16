@@ -17,7 +17,8 @@ while IFS=':' read user homedir; do
                 echo "Dir does not exist"
                 exit 2
         else
-                perm=$(stat -c "%a" $homedir | sed 's/[0-9]{1}/&/')
+                perm=$(stat -c "%a" $homedir | sed 's/[0-9]{1}/&/') #perm=$(stat -c '%a' $homedir | cut -c 1) 
+		
 
         fi
         if [[ ! ($perm -eq 7 || $perm -eq 2 || $perm -eq 3 ) ]];then #-eq 6?
