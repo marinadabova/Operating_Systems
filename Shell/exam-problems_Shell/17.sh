@@ -13,7 +13,7 @@ if [[ "$(whoami)" = "root" ]]; then
 
 while IFS=':' read user homedir; do
         echo "$user"
-        if [[ -d $home ]]; then
+        if [[ ! -d $home ]]; then #check if this works it was without !
                 echo "Dir does not exist"
                 exit 2
         else
