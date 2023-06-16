@@ -53,7 +53,7 @@ fi
 #fi
 
 while read file; do
-        no_prefix_path="$(echo $file | sed "s|$1||g")"
+        no_prefix_path="$(echo $file | sed "s/$1//g")"
         #echo "$no_prefix_path" -> /foof.txt
         mkdir -p "$2$(dirname $no_prefix_path)"
         #echo "$2$(dirname $no_prefix_path)" //concatenate the two
