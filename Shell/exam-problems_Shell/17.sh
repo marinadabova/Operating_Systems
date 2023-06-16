@@ -20,7 +20,7 @@ while IFS=':' read user homedir; do
                 perm=$(stat -c "%a" $homedir | sed 's/[0-9]{1}/&/')
 
         fi
-        if [[ ! ($perm -eq 7 || $perm -eq 2 || $perm -eq 3 ) ]];then
+        if [[ ! ($perm -eq 7 || $perm -eq 2 || $perm -eq 3 ) ]];then #-eq 6?
                 echo "$user doesn not have permission "
                 exit 3
         fi
