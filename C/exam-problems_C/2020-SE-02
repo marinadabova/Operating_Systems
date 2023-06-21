@@ -64,7 +64,9 @@ int main(int argc, char* argv[]){
                         counter++;
                 }
         }
-
+        if(bytes_read < 0 ){
+                err(4,"error while reading");
+        }        
         close(scl);
         close(sdl);
         close(output);
