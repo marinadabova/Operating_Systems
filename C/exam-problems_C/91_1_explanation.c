@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
                 }
 
 
-        for(int i = 0; i < NC + 1; i++) {
+        for(int i = 0; i < NC + 1; i++) { A loop is used to create NC + 1 pipe pairs  NC+1 shtot iskame 0 za parent i 7 deca
                 if(pipe(pds[i]) == -1) {
                         err(2, "creating pipe");
                 }
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
         int id = NC;
         pid_t pid = 0;
-        for(int i = 0; i < NC; i++) {
+        for(int i = 0; i < NC; i++) { //A loop is used to fork NC child processes. Each child process has its own ID (0 to NC-1), and the parent process has ID NC.
                 pid = fork();
 
                                 if (pid == -1) {
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
         }
 
         if(pid > 0) {
-                for(int i = 1; i < NC; i++) {
+                for(int i = 1; i < NC; i++) { //In the parent process, all unnecessary pipe descriptors are closed. It keeps the first and last pipe descriptors open for communication with the child processes.
                         close(pds[i][0]);
                         close(pds[i][1]);
                 }
@@ -80,32 +80,33 @@ int main(int argc, char** argv) {
                 }
         }
 
-        int count = 0;
+        int count = 0; //The variable count is used to keep track of the number of words outputted. It is initially set to 0.
 
-        if(id == NC) {
-                if(write(1, L[count % 3], 4) == -1) {
+        if(id == NC) { 
+                if(write(1, L[count % 3], 4) == -1) { //In the parent process (ID = NC), it writes the first word from the predefined list L to the standard output (stdout). 
+                
                         err(2, "writing to stdout");
                 }
-                count++;
+                count++;      //Then it increments count and writes it to the pipe connected to the first child process.
                 if(write(pds[0][1], &count, sizeof(count)) == -1) {
                         err(2, "writing to pipe %d", count);
                 }
         }
 
-        while(read(pds[id][0], &count, sizeof(count))) {
-                if(count == WC) {
+        while(read(pds[id][0], &count, sizeof(count))) { //Each child process enters a loop where it reads the value of count from its pipe descriptor. 
+                if(count == WC) { //If count reaches the value of WC, the loop is terminated.
                         break;
                 }
-                if(write(1, L[count % 3], 4) == -1) {
+                if(write(1, L[count % 3], 4) == -1) { //Within the loop, each child process writes the word from the L list based on the current value of count to the standard output.
                         err(3, "writing to pipe ");
                 }
-                count++;
+                count++; // It then increments count 
                 if(id == NC) {
-                        if(write(pds[0][1], &count, sizeof(count)) == -1) {
+                        if(write(pds[0][1], &count, sizeof(count)) == -1) { //and writes it to the next child's pipe or back to the parent process if it is the last child.
                                 err(3, "writing to pipe parent" );
                         }
                 } else {
-                        if(write(pds[id+1][1], &count, sizeof(count)) == -1) {
+                        if(write(pds[id+1][1], &count, sizeof(count)) == -1) { //next child is that
                                 err(3, "writing to pipe child");
                         }
                 }
