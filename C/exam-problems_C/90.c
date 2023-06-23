@@ -56,7 +56,7 @@ int main(int argc, char* argv[]){
                 err(5,"error fork");
         }
         if(pid == 0){
-                close(p1[0]);
+                close(p1[1]);
                 close(p2[0]);
 
                 for(int i=0;i<N;i++){
