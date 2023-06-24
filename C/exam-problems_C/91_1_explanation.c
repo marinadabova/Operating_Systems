@@ -19,7 +19,7 @@
 
 const char L[3][4] = { "tic ", "tac ", "toe\n" };
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
 
         if(argc != 3) {
                 errx(1, "Arg count");
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
                 }
 
 
-        for(int i = 0; i < NC + 1; i++) { A loop is used to create NC + 1 pipe pairs  NC+1 shtot iskame 0 za parent i 7 deca
+        for(int i = 0; i < NC + 1; i++) { //A loop is used to create NC + 1 pipe pairs  NC+1 shtot iskame 0 za parent i 7 deca
                 if(pipe(pds[i]) == -1) {
                         err(2, "creating pipe");
                 }
