@@ -19,16 +19,17 @@ int main(int argc, char* argv[]){
 	if(stat(argv[1], &st) < 0){
 		err(2,"Error with stat file");
 	}
-	if(st.st_size % sizeof(uint32_t) != 0){ // proverqvam si size-a 
-		errx(3, "File2 is not in our format");
-    }
-
-	if(stat(argv[2], &st) < 0){
-	 	err(2,"Error with stat file");
-	}
 	if (st.st_size %(2 *sizeof(uint32_t)) != 0) {
 		 errx(3, "File1 is not in our format");
 	}
+	
+	if(stat(argv[2], &st) < 0){
+	 	err(2,"Error with stat file");
+	}
+	if(st.st_size % sizeof(uint32_t) != 0){ // proverqvam si size-a 
+		errx(3, "File2 is not in our format");
+   	}
+
 	int fd1= open(argv[1], O_RDONLY);
 	if(fd1 < 0){
 		err(4, "Error while opening first file");
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]){
 	}
 	ssize_t bytes_read;
 
-	while( ( bytes_read = read(fd1, &data, sizeof(data))) < 0){
+	while( ( bytes_read = read(fd1, &data, sizeof(data))) > 0){
 		if( lseek(fd2, (data.x)*sizeof(uint32_t) , SEEK_SET)< 0){
 			err(6, "Error with lseek");
 		}
