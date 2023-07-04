@@ -7,7 +7,7 @@
 struct pair{
 	uint32_t x;
 	uint32_t y;
-};
+}__attribute__((packed));
 
 
 int main(int argc, char* argv[]){
@@ -58,6 +58,9 @@ int main(int argc, char* argv[]){
 			if(write(fd3, &buf, sizeof(buf)) < 0){
 				err(8,"Error while writing");
 			}
+			//if(write(fd3, &buf, sizeof(buf)) != sizeof(buf)){
+			//err(8,"Error while writing");
+			//}
 		}
 	}
 	if(bytes_read < 0){
