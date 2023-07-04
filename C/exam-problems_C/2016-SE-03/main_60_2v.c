@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     off_t fileSize = st.st_size;
     off_t numCount = fileSize / sizeof(uint32_t);
     int maxN = 100000000;
-    if (numCount > maxN)
+    if (numCount > maxN) // ili moga da napisha bez 44 red i tuk v if-a if(fileSize > maxN*sizeof(uint32_t))
     {
         errx(5, "Input has more numbers than it should");
     }
