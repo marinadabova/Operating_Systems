@@ -5,7 +5,7 @@
 #include <err.h>
 #include <stdlib.h>
 
-struct data{
+typedef struct data{
                 
     uint16_t offset;
     uint8_t length;
@@ -40,11 +40,11 @@ int  main(int argc, char* argv[]){
     if(stat(argv[2], &st) < 0){
     	err(3, "Error stat");
     }
-    data index;
+    struct data index;
     if(st.st_size % sizeof(index) != 0){
     	errx(4, "Incorrect format");
     }
-	uint16_t towrite_offset = 0x0000;
+    uint16_t towrite_offset = 0x0000;
     ssize_t bytes_read;
 
     while( (bytes_read = read(fd2, &index, sizeof(index))) > 0){
