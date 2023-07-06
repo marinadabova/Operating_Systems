@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 int main(int argc, char* argv[]){
-	if(argc == 1){ //ako nqma param?
+	if(argc == 1){ //ako nqma param
 		char buf[4096];
 		ssize_t bytes_read;
 		while( (bytes_read= read(0,&buf, sizeof(buf))) > 0){
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
 	bool newLine=true;
 	int argcCnt=1;
 
-	setbuf(stdout,NULL);// disable buffering for stdout, prashta na stdout-a, bez da pazi v bufera
+	setbuf(stdout,NULL);  // disable buffering for stdout, prashta na stdout-a, bez da pazi v bufera
 
 	if( strcmp(argv[1], "-n") == 0){
 		numbers=true;
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-	for( ; argcCnt< argc; argcCnt++){
+	for( ; argcCnt< argc; argcCnt++){ //ako ima files
 		int fd;
 		if(strcmp(argv[argcCnt], "-") == 0){
 			fd =0;
@@ -65,9 +65,10 @@ int main(int argc, char* argv[]){
 		else{
 			fd=open(argv[argcCnt], O_RDONLY);
 			if(fd < 0){
-				err(1,"Could not open file");
+				warn("Cant open file"); // po skoro e warning
+				//err(1,"Could not open file");
 				continue;
-				//  warn("Cant open file"); // koe trqbva da e?
+				
 			}
 		}
 		char buf;
@@ -76,25 +77,25 @@ int main(int argc, char* argv[]){
 		while( (bytes_read=read(fd, &buf, sizeof(buf))) > 0){
 			if(numbers && newLine){
 				printf("%d ", lines);
-            	newLine = false;
-            }
-            if(numbers && buf == '\n'){
-                lines++;
-                newLine = true;
-            }
+            			newLine = false;
+            		}
+            		if(numbers && buf == '\n'){
+              			lines++;
+               			newLine = true;
+           		}
 
-            if(write(1, &buf, sizeof(buf)) < 0){
-            	err(2, "Error writing");
-            }
-        }
+            		if(write(1, &buf, sizeof(buf)) < 0){
+            			err(2, "Error writing");
+          		}
+       		}
 
-        if(bytes_read == -1){
-        	err(1, "Error reading");
-        }
+        	if(bytes_read == -1){
+        		err(1, "Error reading");
+       		}
 
 		if(fd != 0){
 			close(fd);
-        }
+	        }
 	}	
 
 	return 0;
