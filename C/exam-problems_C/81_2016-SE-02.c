@@ -1,57 +1,47 @@
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <err.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/wait.h>
-#include <stdbool.h>
+#include <err.h>
 
-int main(void){
-        while(true){
-                char buf[1024];
-                ssize_t bytes_read;
-                /* if ((write(1, "Enter command: ", 15)) != 15)
-        {
-            err(1, "Write failed!");
+int main(void) {
+    while (1){
+        char command[4096];
+        ssize_t num_bytes;
+
+        // Output prompt
+        write(1, "Command: ", 9);
+
+        if ( (num_bytes=read(0, command, sizeof(command))) <= 0){
+            err(1, "error reading");
         }
-                */
-                if( (bytes_read=read(0,&buf,sizeof(buf))) < 0){
-                        err(1,"error while reading");
-                }
-                buf[bytes_read - 1] ='\0';
-                if(strcmp(buf,"exit") == 0){
-                        break;
-                }
-                pid_t p=fork();
-                if(p<0){
-                        err(2,"error fork");
-                }
-                else if(p == 0){
-                        if(execlp(buf, buf, (char*)NULL) == -1){
-                                err(3,"error with execlp");
-                        }
-                }
-                /*
-        int status;
-        if (wait(&status) == -1)
-        {
-            err(4, "Could not wait for child!");
+        if (command[num_bytes - 1] == '\n'){
+            command[num_bytes - 1] = '\0';
+        }
+        if (strcmp(command, "exit") == 0) {
+            break;
         }
 
-        if (WIFEXITED(status))
-        {
-            if (WEXITSTATUS(status) != 0)
-            {
-                errx(4, "Wait failed!");
+        pid_t pid = fork();
+        if (pid == -1) {
+            err(2, "Error with fork");
+        }
+        else if (pid == 0) {
+            if (execlp(command, command, NULL) == -1) {
+                err(3, "Error with execlp");
             }
-        } */
+        } 
+        else{
 
-        wait(NULL);
+            int status;
+            waitpid(pid, &status, 0);
+            if (!WIFEXITED(status)){
+                err(4, "Error with wait");
+            }
+        }
     }
+
     exit(0);
 }
 
