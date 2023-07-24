@@ -122,11 +122,15 @@ int main(int argc, char* argv[]){
                         }
                          //check if that is the right way to compare
                         if(el1>el2){
-                                lseek(fd1,sizeof(s1_h)+(s2_d.offset1*sizeof(uint64_t)) ,SEEK_SET);
+                                if(lseek(fd1,sizeof(s1_h)+(s2_d.offset1*sizeof(uint64_t)) ,SEEK_SET)){
+                                         err(11,"error whith lseek");
+                                }
                                 if(write(fd1,&el2, sizeof(el2)) != sizeof(el2)){
                                         err(12,"error while writing");
                                 }
-                                lseek(fd1,sizeof(s1_h)+(s2_d.offset2*sizeof(uint64_t)) ,SEEK_SET);
+                                if(lseek(fd1,sizeof(s1_h)+(s2_d.offset2*sizeof(uint64_t)) ,SEEK_SET)){
+                                         err(11,"error whith lseek");
+                                }
                                 if(write(fd1,&el1, sizeof(el1)) != sizeof(el2)){ //sizeof(el1)??
                                         err(12,"error while writing");
                                 }
@@ -156,11 +160,15 @@ int main(int argc, char* argv[]){
                         }
                          //check if that is the right way to compare
                          if(el1 < el2){
-                                lseek(fd1,sizeof(s1_h)+(s2_d.offset1*sizeof(uint64_t))  ,SEEK_SET);
+                                if(lseek(fd1,sizeof(s1_h)+(s2_d.offset1*sizeof(uint64_t))  ,SEEK_SET)){
+                                         err(11,"error whith lseek");
+                                }
                                 if (write(fd1,&el2,sizeof(el2)) != sizeof(el2)){
                                         err(12,"error while writing");
                                 }
-                                lseek(fd1,sizeof(s1_h)+(s2_d.offset2*sizeof(uint64_t)) ,SEEK_SET);
+                                if(lseek(fd1,sizeof(s1_h)+(s2_d.offset2*sizeof(uint64_t)) ,SEEK_SET)){
+                                         err(11,"error whith lseek");
+                                }
                                 if (write(fd1,&el1,sizeof(el1)) != sizeof(el2)){
                                          err(12,"error while writing");
                                 }
