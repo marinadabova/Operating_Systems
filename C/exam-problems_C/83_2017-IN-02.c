@@ -1,4 +1,3 @@
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <err.h>
@@ -11,8 +10,8 @@
 #include <stdbool.h>
 
 int main(int argc, char* argv[]){
-        char command[5];
-        if(argc == 1){
+    char command[5];
+    if(argc == 1){
         strcpy(command,"echo");
     }
     else if (argc==2){
@@ -28,66 +27,70 @@ int main(int argc, char* argv[]){
     while(true){
         char string[5];
         for(int i=0;i<5;i++){
-                string[i]='\0';
-                }
-                int bytes_read;
-                int i=0;
-                char c;
-                while( (bytes_read=read(0,&c,sizeof(c))) > 0){
-                        if( c==0x20 || c==0x0A){
-                                break;
-                        }
-                        if( i>=4){
-                                errx(3,"invalid string length");
-                        }
-                        string[i]=c;
-                        i++;
-                }
-                if(bytes_read <0){
-                        err(4,"error while reading");
-                }
-                if(bytes_read ==0){
-                        exit(0);
-                }
-                i=0;
-                char string2[4];
-                int rs;
-                for(int i=0;i<4;i++){
-                        string2[i]='\0';
-                }
-                while( (rs=read(0,&c,sizeof(c)))> 0){
-                         if( c==0x20 || c==0x0A){
-                                break;
-                        }
-                        if( i>=4){
-                                errx(3,"invalid string length");
-                        }
-                        string2[i]=c;
-                        i++;
-                }
-                if(rs==0){
-                        if(execlp(command,command,string,(char*) NULL) == -1){
-                                err(5,"error while ececlp");
-                        }
-                }
-                if(rs == -1){
-                        err(4,"error while reading");
-                }
-
-                int pid=fork();
-                if(pid ==0){
-                        if( execlp(command,command,string,string2,(char*)NULL)==-1){
-                                err(5,"error while ececlp");
-                        }
-                }
-                else if(pid>0){
-                        wait(NULL);
-                }
-                else{
-                        err(6,"error with fork");
-                }
+            string[i]='\0';
         }
-        //exit(0);
+        int bytes_read;
+        int i=0;
+        char c;
+        while( (bytes_read=read(0,&c,sizeof(c))) > 0){
+            if( c==0x20 || c==0x0A){
+                break;
+            }
+            if( i>=4){
+                errx(3,"invalid string length");
+            }
+            string[i]=c;
+            i++;
+        }
+                
+        if(bytes_read <0){
+            err(4,"error while reading");
+        }
+        if(bytes_read ==0){
+            exit(0);
+        }
+        i=0;
+        char string2[4];
+        int rs;
+        for(int i=0;i<4;i++){
+            string2[i]='\0';
+        }
+
+        while( (rs=read(0,&c,sizeof(c)))> 0){
+            if( c==0x20 || c==0x0A){
+                break;
+            }
+            if( i>=4){
+                errx(3,"invalid string length");
+            }
+            string2[i]=c;
+            i++;
+        }
+                
+        if(rs==0){
+            if(execlp(command,command,string,(char*) NULL) == -1){
+                err(5,"error while ececlp");
+            }
+        }
+    
+        if(rs == -1){
+            err(4,"error while reading");
+        }
+
+        int pid=fork();
+        if(pid ==0){
+            if( execlp(command,command,string,string2,(char*)NULL)==-1){
+                err(5,"error while ececlp");
+            }
+        }
+        else if(pid>0){
+            wait(NULL);
+        }
+        else{
+            err(6,"error with fork");
+        }
+    }
+    //exit(0);
 }
 
 /*Зад. 83 2017-IN-02 Напишете програма на C, която приема незадължителен параметър – име на ко-
