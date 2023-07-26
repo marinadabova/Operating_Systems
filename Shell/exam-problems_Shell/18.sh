@@ -11,10 +11,10 @@ fi
 
 mkdir -p {a,b,c}
 
-found=$(find . -type f)
-if [[ -z $found ]]; then
-	echo "Empty"
-	exit 3
+checkDirEmpty=$(find . -maxdepth 0 -empty)
+if [[ ! -z checkDirEmpty ]]; then
+    echo "Dir is empty"
+    exit 3
 fi
 
 while read filename ;do
