@@ -13,3 +13,4 @@ if [[ ! -d ${1} ]]; then
 fi
 
 find -L ${1} -type l
+#find $1 -xtype l
