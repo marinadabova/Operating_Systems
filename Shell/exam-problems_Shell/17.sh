@@ -9,24 +9,19 @@ if [[ "$(whoami)" != "root" ]]; then
         echo "Not root"
         exit 1
 fi
-if [[ "$(whoami)" = "root" ]]; then
 
 while IFS=':' read user homedir; do
-        echo "$user"
-        if [[ ! -d $home ]]; then #check if this works it was without !
-                echo "Dir does not exist"
+        #echo "$user"
+        if [[ ! -d $homedir ]]; then 
+                echo "$user doesn not have homedir"
                 exit 2
         else
-                perm=$(stat -c "%a" $homedir | sed 's/[0-9]{1}/&/') #perm=$(stat -c '%a' $homedir | cut -c 1) 
-		
-
+        	perm=$(stat -c '%a' $homedir | cut -c 1)  # perm=$(stat -c "%a" $homedir | sed 's/[0-9]{1}/&/')
+		if [[  ${perm} -ne 7 && ${perm} -ne 6 && ${perm} -ne 3 && ${perm} -ne 2 ]] ; then
+                	echo "$user does not have write permission "
+                	exit 3
+        	fi
         fi
-        if [[ ! ($perm -eq 7 || $perm -eq 2 || $perm -eq 3 ) ]];then #-eq 6?
-                echo "$user doesn not have permission "
-                exit 3
-        fi
-
-
-
+        
 done < <(cat /etc/passwd | cut -d ':' -f 1,6)
 fi
