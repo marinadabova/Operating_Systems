@@ -31,6 +31,29 @@
 #ENABLED_OPTIONS=a b c d
 #ENABLED_OPTIONS_EXTRA=e f
 
+
+#!/bin/bash
+if [[ $# -ne 3 ]] ; then
+    echo "Expected 3 arguments"
+    exit 1
+fi
+if [[ ! -f $1 ]]; then
+    echo "First argument should be file"
+    exit 2
+fi
+args1=$(cat "${1}" | egrep  "^${2}=" |cut -d '=' -f 2-| tr ' ' '\n')
+args2=$(cat "${1}" | egrep  "^${3}=" |cut -d '=' -f 2-| tr ' ' '\n')
+
+while read line ; do
+   	if !(  echo "${args1}" | grep -q -F "${line}" ); then
+                result+=$(echo "${line} ")
+	fi
+done < <(echo "${args2}")
+
+sed -i -E "s/(${3}=).*/\1${result}/g" ${1}
+
+
+________________________________________________
 #!/bin/bash
 
 if [[ $# -ne 3 ]]; then
