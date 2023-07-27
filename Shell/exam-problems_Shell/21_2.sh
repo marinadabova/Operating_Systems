@@ -34,44 +34,41 @@
 #!/bin/bash
 
 if [[ $# -ne 3 ]]; then
-    echo "Wrong arguments are passed"
+    echo "Arguments should be 3"
     exit 1
 fi
-if [[ ! -f $1 ]] ; then
-    echo "The first argument must be file";
-    exit 2;
-fi
-if [[ -z ${2} || -z ${3} ]]; then
-	echo "the string should be longer than zero"
-	exit 3
-fi
-if [[ $(cat $1 |grep -c "$2=") -eq 0 ]]; then
-        echo "The first key does not exist"
-        exit 3
-fi
-if [[ $(cat $1 |grep -c "$3=") -eq 0 ]]; then
-        echo "The second key does not exist"
-    exit 4
-fi
 
+if [[ ! -f $1 ]]; then
+    echo "First argument should be file"
+    exit 2
+fi
+str1=$2
+str2=$3
 
-str1=$(cat $1 |grep "$2=")
-str2=$(cat $1 |grep "$3=")
-
-secondKey=$(echo "$str2" | cut -d '=' -f 1)
+str1_st=$(cat $1 |grep "^$2=" | cut -d '=' -f 2-)
+str2_st=$(cat $1 |grep "^$3=" | cut -d '=' -f 2-)
+if [[ -z "$str2_st" ]]; then
+	echo "not found key"
+  exit 3
+fi 
 temp=$(mktemp)
-echo $str1 |cut -d '=' -f 2 |tr ' ' '\n' > $temp
-secondSt=$(echo $str2 |cut -d '=' -f 2)
+echo "$str1_st" |tr ' ' '\n' > $temp
+cpStr2_st=$str2_st
+while read char; do
+   if [[ $(echo $str2_st | grep -c "$char") -ne 0 ]]; then
+        cpStr2_st=$(echo $cpStr2_st |tr -d "$char")
+    fi
+done< <(cat $temp)
 
-cat $temp | while read line; do
-        if [[ $(echo $secondSt | grep -c "$line") -ne 0 ]]; then
-                secondSt=$(echo $secondSt | tr -d "$line")
-        fi
-        #echo $secondSt
-
-        sed -i -E "s/$str2/$secondKey=$secondSt/" $1
-        str2=$(cat $1 | grep "$3=")
-done
-
+sed -i -E "s/$str2=$escaped_str2_st/$str2=$escaped_cpStr2_st/" "$1"
 rm $temp
+ 
+#FOO=73
+#BAR=42
+#BAZ=
+#ENABLED_OPTIONS=a b c d
+#ENABLED_OPTIONS_EXTRA= e f #ima space predi e-to
+
+
+
 
