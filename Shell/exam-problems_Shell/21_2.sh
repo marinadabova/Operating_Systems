@@ -41,7 +41,10 @@ if [[ ! -f $1 ]] ; then
     echo "The first argument must be file";
     exit 2;
 fi
-
+if [[ -z ${2} || -z ${3} ]]; then
+	echo "the string should be longer than zero"
+	exit 3
+fi
 if [[ $(cat $1 |grep -c "$2=") -eq 0 ]]; then
         echo "The first key does not exist"
         exit 3
