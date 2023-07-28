@@ -33,7 +33,10 @@ if [[ ! -d $1 ]]; then
         echo "First argument should be dir"
         exit 2
 fi
-
+if [[ ! $2 =~ ^[a-zA-Z]+$ ]]; then
+    echo "Arg2 should be string"
+    exit 3
+fi
 if [[ ! -n $2 ]]; then
         echo "Second argument should be non-zero string"
         exit 3
