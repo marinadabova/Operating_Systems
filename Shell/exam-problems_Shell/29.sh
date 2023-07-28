@@ -31,10 +31,14 @@ while read line; do
         if [[ ! -e $homeDir ]] || [[ $(stat -c "%U" $homeDir) != "$user" ]] || [[ $(stat -c "%A" $homeDir| cut -c 3) != "w" ]]; then
 
                 rss_user=$(ps -u "$user" -o rss=| awk '{totalRss+=$1} END {print totalRss}')
-
+                pid_user=$(ps -u "$user" -o pid=)
                 if [[ $rss_user -gt $rss_root ]]; then
                         #killall -KILL $(ps -u $user pid=)
                         #killall -u $user -TERM
+                        
+                        #kill -TERM $pid_user
+                        #sleep 2
+                        #kill -KILL $pid_user
                         echo "killing $(ps -u $user -o pid=)"
                 fi
         fi
