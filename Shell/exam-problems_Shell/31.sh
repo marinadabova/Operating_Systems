@@ -59,7 +59,7 @@ while read line; do
                 number=$num
                 num=$(echo "$num+1" | bc)
     fi
-    echo $line | egrep "$name" >> "$2/$number.txt"
+    echo $line | egrep "$names" >> "$2/$number.txt"
 
 
 done< <(cat $1)
