@@ -51,7 +51,7 @@ fi
 touch "$2/dict.txt"
 num=1
 while read line; do
-        names=$(echo "$line" | cut -d ':' -f1 |sed -E 's/\(.*\)//' |tr -s ' ')
+        names=$(echo "$line" | cut -d ':' -f1 |sed -E 's/\(.*\)//' |tr -s ' ') #cat $1| sed -E 's/^(([a-zA-Z\-]+) ([a-zA-Z\-]+))\s?(\(.*\))?:.*$/\1/' | sort | uniq
         number=$(cat $2/dict.txt | grep  "$names"| cut -d ';' -f2)
 
         if [  -z $number ]; then
