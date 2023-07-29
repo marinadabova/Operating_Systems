@@ -38,7 +38,7 @@ fi
 
 for file in "$@"; do
         if [[ -f $file ]]; then
-                IDF=$(basename $file .log)
+                IDF=$(basename -s .log $file ) #  the same as basename $file .log
                 cat $file | tail -$N| sed -E 's/(^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+[0-9]{2}:[0-9]{2}:[0-9]{2})(.+)/\1 $IDF \2/g' >> $stdout
         fi
 
