@@ -51,3 +51,36 @@ while read arch; do
 done< <(find "$1" -type f -regextype egrep -regex "/?[^_]+_report-[0-9]+\.tgz$")
 
 rm "$f"
+-----------------------------------------------------------------
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+	echo 'Usage: extract /path/to/dir' 1>&2
+	exit 1
+fi
+dirname="$1"
+
+destdir='/extracted'
+processed="$destdir/processed.txt"
+
+if [[ ! -e $processed ]]; then
+	touch $processed
+fi
+
+find $dirname -type f -regextype posix-extended -regex '^.*/[^_]+_report-[0-9]+\.tgz$' | while read fname; do 
+
+	#echo $fname
+	name=$(basename $fname)
+	proc="$(sha256sum $fname | awk '{print $1}') $name"
+
+	found="$(tar -tzf "$fname" | grep -Ee '/meow\.txt$' )" 
+	destname="$( echo $name | sed -E 's/^([^_]+)_report-([0-9]+)\.tgz$/\1_\2/')"
+	if grep -xq $proc $processed;then
+		#already processed
+		continue
+	fi
+
+	tar -xzOf $fname $found > $destdir/$destname
+
+	echo $proc >> $processed 
+done 
