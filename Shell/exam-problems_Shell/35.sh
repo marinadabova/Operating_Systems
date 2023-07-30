@@ -16,12 +16,11 @@
 #• ако архивният файл съдържа файл с име meow.txt, то този текстови файл да бъде записан под името /extracted/NAME_TIMESTAMP.txt, където NAME и TIMESTAMP са съответните стойности от името на архивния файл.
 
 #!/bin/bash
-
+#greshen script
 if [[ $# -ne 1 ]]; then
         echo "One argumnet needed"
         exit 1
 fi
-
 if [[ ! -d $1 ]]; then
         echo "Argument should be dir"
         exit 2
@@ -40,7 +39,7 @@ echo " " > $file
 while read arch; do
         sum=$(sha256sum "$arch" | cut -d ' ' -f1)
         echo "$sum $arch" >> $file
-        if grep -qxF "$sum_$arch" "$f"; then
+        if grep -qxF "$sum_$arch" "$f"; then #tuk ima nqkakva greshka mai
                 continue
         fi
         found=$(tar -tzf "$arch" | grep "/meow.txt$" | head -n 1)
@@ -84,3 +83,30 @@ find $dirname -type f -regextype posix-extended -regex '^.*/[^_]+_report-[0-9]+\
 
 	echo $proc >> $processed 
 done 
+-------------------------------------------------
+#!/bin/bash
+
+if [[ ${#} -ne 1 ]] ; then
+        echo "Expected 1 argument - directory"
+        exit 1
+fi
+
+DIR="${1}"
+
+allArchives=$(find "${DIR}" -mindepth 1 -maxdepth 1 -type f -name "*_report-*.tgz" -printf "%p %M@\n")
+lastExecution=$(stat -c "%X" ${0})
+resultArchives=$(echo "${allArchives}" | awk -v var=${lastExecution} '{if ($2>=var) print $1}')
+
+while read file ; do
+        NAME=$(echo ${file} | sed -E 's/(.*)_/\1/')
+        TIMESTAMP=$(echo ${file} | sed -E 's/report-(.*)[.]tgz/\1/')
+        while read line ; do
+                bn=$(basename ${line})
+                if [[ ${bn} == "meow.txt" ]] && [[ -f ${bn} ]] ; then
+                        tar -xf ${file} ${line}
+                        dir=$(dirname ${file})
+                        mv "${dir}/${line}" "/extracted/${NAME}_${TIMESTAMP}.txt"
+                        break
+                fi
+        done < <(tar -tf ${file} | egrep "meow.txt")
+done < <(echo ${resultArchive})
