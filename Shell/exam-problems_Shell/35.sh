@@ -53,36 +53,44 @@ rm "$f"
 -----------------------------------------------------------------
 #!/bin/bash
 
-if [ "$#" -ne 1 ]; then
-	echo 'Usage: extract /path/to/dir' 1>&2
-	exit 1
+if [[ $# -ne 1]]; then
+    echo "One arg needed"
+    exit 1
 fi
-dirname="$1"
+if [[ ! -d $1 ]]; then 
+    echo "First arg should be dir"
+    exit 2
+fi
 
 destdir='/extracted'
 processed="$destdir/processed.txt"
 
-if [[ ! -e $processed ]]; then
+if [[ ! -e $processed ]]; then #ako ne sushtesvuva go suzdavame
 	touch $processed
 fi
 
-find $dirname -type f -regextype posix-extended -regex '^.*/[^_]+_report-[0-9]+\.tgz$' | while read fname; do 
+while read arch; do 
 
-	#echo $fname
-	name=$(basename $fname)
-	proc="$(sha256sum $fname | awk '{print $1}') $name"
+	name=$(basename $arch)
+    	sum=$(sha256sum $arch | awk '{print $1}')
+    	proc="$sum $name"
+	#proc="$(sha256sum $fname | awk '{print $1}') $name"
 
-	found="$(tar -tzf "$fname" | grep -Ee '/meow\.txt$' )" 
-	destname="$( echo $name | sed -E 's/^([^_]+)_report-([0-9]+)\.tgz$/\1_\2/')"
+	found="$(tar -tzf "$arch" | grep -E '/meow\.txt$' )" #listva arhivniq file i tursi meow.txt 
+	destname="$( echo $name | sed -E 's/^([^_]+)_report-([0-9]+)\.tgz$/\1_\2/')" 
+   	 # destname -> izvlicha NAME i TIMESTAMP ot arh file i gi pravi taka che da sa udobni za da stane /extracted/NAME_TIMESTAMP.txt
 	if grep -xq $proc $processed;then
 		#already processed
 		continue
 	fi
 
-	tar -xzOf $fname $found > $destdir/$destname
+	tar -xzOf $arch $found > $destdir/$destname #tuk pravi /extracted/NAME_TIMESTAMP.txt
+    	#extracts the content of the tar archive $arch and $found, and the -O option sends the extracted content to stdout
+	#kato sled tova s > se redirectva kum extracted/NAME_TIMESTAMP.txt
+	
+ 	#echo $proc >> $processed #mai ne trqbva
+done< <(find $1 -type f -regextype posix-extended -regex '^.*/[^_]+_report-[0-9]+\.tgz$')
 
-	echo $proc >> $processed 
-done 
 -------------------------------------------------
 #!/bin/bash
 
