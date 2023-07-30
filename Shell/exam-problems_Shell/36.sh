@@ -42,20 +42,24 @@ if [[ $# -ne 2 ]]; then
         echo "Argumenst should be two"
         exit 1
 fi
-
-
 if [[ ! -d $2 ]]; then
         echo "Second argument should be dir"
         exit 3
 fi
-
 touch ./$1
-
 if [[ ! -f $1 ]]; then
      echo "First argument should be file"
      exit 2
 fi
+if [[ -n $(find $2 -maxdepth 0 -empty) ]]; then
+	echo "Directory empty nothing to search for"
+	exit 5
+fi
 
+if [[ -z $(find $2 -type f -name "*.log") ]]; then
+	echo "There are not .log files to read from"
+	exit 6
+fi
 
 echo "hostname,phy,vlans,hosts,failover,VPN-3DES-AES,peers,VLAN Trunk Ports,license,SN,key" >> $1
 
