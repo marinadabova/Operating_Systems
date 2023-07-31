@@ -47,7 +47,8 @@ fi
 date=$(date)
 user=$(whoami)
 
-if ( cat $1 | egrep -q "^[[:space:]]*$2[[:space:]]*=[[:space:]]*[^($3)]") && ! (cat $1 | egrep -q "^[[:space:]]*$2[[:space:]]*=[[:space:]]*$3"); then
+if ( cat $1 | egrep -q "^[[:space:]]*$2[[:space:]]*=[[:space:]]*[^($3)]") ; then
+#&& ! (cat $1 | egrep -q "^[[:space:]]*$2[[:space:]]*=[[:space:]]*$3") suhtoto
         sed -E -i "s/(^[[:space:]]*$2[[:space:]]*=[[:space:]]*[^($3)].*$)/# \1 edited at $date by $user\n$2 = $3 # added at $date by $user/g" $1
 
 elif [[ ! $(cat $1 |egrep -q "^[[:space:]]*[#]*$2") ]]; then
