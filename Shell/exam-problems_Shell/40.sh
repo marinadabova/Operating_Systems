@@ -17,52 +17,78 @@
 #• името на файла, без частта .cfg дефинира потребителско име. Ако във файла с паролите не съществува запис за този потребител,
 #то такъв да се добави и на стандартния изход да се изведе потребителското име и паролата (поне 16 символа) разделени с един интервал.
 
+
 #!/bin/bash
-
-
+#nai-prosto i dobro resh
 if [[ $# -ne 3 ]]; then
-        echo "Arguments should be 3"
-        exit 1
+    echo "Arguments should be 3"
+    exit 1
 fi
-
 if [[ ! -f $1 ]] || [[ ! -f $2 ]]; then
-        echo "First and second argument should be files"
-        exit 2
+    echo "First and second argument should be files"
+    exit 2
 fi
-
 if [[ ! -d $3 ]]; then
-        echo "Third argument should be dir"
-        exit 4
+    echo "Third argument should be dir"
+    exit 4
 fi
 
 while read file; do
+    username=$(basename "$file" .cfg)
+    if cat $file |egrep -q "^[^#{]" ; then
+        echo "Error in $(basename $file)"
+		cat $file | awk ' $1 ~ /[^#{]/ {print "Line",NR":", $0}'
+    else
+        cat $file >> $2
+         if ! (cat $1 |egrep -q "^$username:"); then
+                password=$(pwgen 16 1)
+                hass_pass=$(echo $password | md5sum | cut -d ' ' -f1)
+                echo "$username:$hass_pass" >> $1
+                echo "$username $hass_pass"
+        fi
+    fi
 
-        countLines=0
-        while read line; do
-                if [[ "$line" =~ ^[[:space:]]*#.*$ ]]; then
-                        continue
-                elif [[ "$line" =~ (^#.*|^$\{ .+ \};$|^{ .+; };$) ]];then
+done< <(find $3 -type f -regextype egrep -regex "^.*\.cfg$")
+-------------------------------------------------------------------------
+#!/bin/bash
 
-                #elif [[ "$line" =~ ^[[:space:]]*[{][[:space:]]*(no-production|volatile|run-all)[[:space:]]*[}][[:space:]]*[;][[:space:]]*$ ]]; then
-                continue
-        else
-                echo "Error in $file:"
-                echo "Line $countLines: $line"
-                countLines=$(echo "countLines+1"|bc)
+if [ $# -ne 3 ];then
+        echo "We need 3 arguments" >&2;
+        exit 1;
+fi
+
+if [ ! -f $1 ];then
+        echo "We need file" >&2;
+        exit 2;
+fi
+
+if [ ! -f $2 ];then
+        echo "We need file" >&2;
+        exit 2;
+fi
+
+if [ ! -d $3 ];then
+        echo "We need dir" >&2;
+        exit 3;
+fi
+
+find $3 -type f -printf "%f\n" | egrep "^.+\.cfg$" | while read line;do
+        if [ $(cat $line | egrep -n -v "(^#.*|^$|^{ .+ };$|^{ .+; };$)" | wc -l) -ne 0 ];then
+                echo "Error in $line";
+                cat $line | egrep -n -v "(^#.*|^$|^{ .+ };$|^{ .+; };$)" | sed -E 's/(.+)/Line \1/';
+                continue;
         fi
 
+        cat $line >> $2;
 
-        done< "$file"
+        username=$(basename -s .cfg $line);
 
-        if [[ $countLines -eq 0 ]]; then
-                cat "$file" >> "$2"
-                username=$(basename $file .cfg)
-
-                if ! (cat $1 |egrep -q "^$username"); then
-                        passwd=$(pwgen 16 1)
-                        echo "$username:$passwd" >> $1
-                        echo "$username $passwd"
-                fi
-
+        if [ $(cat $1 | cut -d ':' -f 1 | grep -c "$username") -eq 0 ];then
+                password=$(pwgen 16 1);
+                echo "${username}:${password}" >> $1;
+                echo "${username} ${password}";
         fi
-done < <(find $3 -type f -regextype egrep -regex ".*\.cfg")
+
+done
+
+exit 0;
