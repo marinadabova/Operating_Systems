@@ -50,6 +50,10 @@ if [[ ! "$1" =~ ^[0-9]+.?[0-9]*$ ]]; then
         echo "First argument should be number"
         exit 2
 fi
+if [[ -z $2 ]] || [[ -z $3 ]]; then
+	echo "expecting string"
+	exit 3
+fi
 
 decimal=$(cat "prefix.csv" | egrep ".+,$2,.+" |cut -d ',' -f3)
 number=$(echo "$1 * $decimal" | bc)
