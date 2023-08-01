@@ -52,7 +52,7 @@ if [[ $1 -lt 2 ]];then
         echo "First argument must be at least 2"
         exit 5
 fi
-
+user=$(user)
 temp=$(mktemp)
 minutes=$(echo "$1 * 60" | bc)
 
