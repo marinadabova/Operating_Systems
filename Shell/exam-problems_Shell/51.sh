@@ -24,12 +24,10 @@ if [[ $# -ne 1 ]]; then
         echo "One argument needed"
         exit 1
 fi
-
 if [[ ! -d $1 ]]; then
         echo "Argument must be dir name"
         exit 2
 fi
-
 if [[ "$1" != "fuga" ]]; then
         echo "Wrong dir name"
         exit 3
@@ -58,3 +56,44 @@ while read filename; do
 
         fi
 done< <(find $1/cfg -type f -regextype egrep -regex "^.*\.cfg$")
+--------------------------------------
+#second resh
+
+#!/bin/bash
+if [[ $# -ne 1 ]]; then
+        echo "One argument needed"
+        exit 1
+fi
+if [[ ! -d $1 ]]; then
+        echo "Argument must be dir name"
+        exit 2
+fi
+if [[ "$1" != "fuga" ]]; then
+        echo "Wrong dir name"
+        exit 3
+fi
+
+temp=$(mktemp)
+while read filename; do
+    $1/validate.sh $filename >$temp
+    exitCode=$?
+    username=$(basename $filename .cfg)
+    if [[ $exitCode -eq 0]]; then
+        cat $filename >> $1/foo.conf     #(re)generira foo.conf kato konkatenaciq
+
+        isPresent=$(cat $1/foo.pwd |egrep -q "^$username:.*$")
+        if [[ -z $isPresent ]]; then
+            passwd=$(pwgen 10 1)
+            hashPasswd=$(mkpasswd $passwd)
+
+            echo "$username:$hashPasswd" >> $1/foo.pwd
+            echo "$username:$passwd"
+        fi
+    elif [[ $exitCode -eq 1]]; then
+        cat $temp |awk -v name=$filename '{print name":"$0}' 1>&2
+    else
+        continue
+    fi
+
+done< <(find $1/cfg -type f -regextype egrep -regex "^.*\.cfg$")
+rm $temp
