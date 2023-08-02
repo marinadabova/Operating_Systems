@@ -41,7 +41,7 @@ while read filename; do
         if [[ $($1/validate.sh $filename | wc -l) -ne 0 ]];then
                 $1/validate.sh $filename | awk -v name=$filename '{print name ":"$0}' >&2
         elif
-                $1/validate.sh $line
+                $1/validate.sh $filename
 
                 if [[ $? -eq 0 ]];then
                         isPresent=$(cat $1/"foo.pwd" | egrep -q "^$user:.+$")
