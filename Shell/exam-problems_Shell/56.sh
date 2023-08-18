@@ -49,6 +49,43 @@ while read file; do
 
 done< <(find $2 -type f -regextype egrep -regex "^.*\.txt$")
 #second solution:
+#!/bin/bash
+
+if [[ $# -ne 1 || ! -d "${1}" ]]; then
+        echo "usage: ${0} <dir>"
+        echo "${0} lists the probable stop words from documents in the given dir"
+        exit 1
+fi
+
+dir="${1}"
+
+num_files=$(find "${dir}" -type f | wc -l)
+
+function is_candidate {
+        regex="([^a-zA-Z]|^)${1}([^a-zA-Z]|$)"
+        count=$(
+                grep -i -o -E "${regex}" -r "${dir}" | cut -d : -f 1 \
+                        | tr 'A-Z' 'a-z' | sort | uniq -c \
+                        | awk '$1 >= 3' | wc -l
+        )
+        if [[ $(( count * 2 )) -ge ${num_files} ]]; then
+                return 0
+        else
+                return 1
+        fi
+}
+
+while read count word; do
+        if is_candidate "${word}"; then
+                echo "${word}"
+        fi
+done < <(
+        grep -o -E '[a-zA-Z]+' -r "${dir}" --no-filename \
+                | tr 'A-Z' 'a-z' \
+                | sort | uniq -c | sort -nr
+) | head -n 50
+
+#3 solution:
 #while read file; do
 #        while read word ; do
 #
