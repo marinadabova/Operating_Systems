@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
         close(b[0]);
         dup2(a[0],0); //proverka?
         dup2(b[1],1);
-        if(execp("sort", "sort", "-nr", "-k2", (char*)NULL) == -1){
+        if(execlp("sort", "sort", "-nr", "-k2", (char*)NULL) == -1){
             err(4,"error with execlp");
         }
     }
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
     }
     close(b[0]);
     close(c[1]);
-    dup(c[0],0);
+    dup2(c[0],0);
     if(execlp("head", "head", "-n", "1", (char*)NULL) == -1){
         err(4,"error with execlp");
     }
