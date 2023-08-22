@@ -106,6 +106,7 @@ int main(int argc, char* argv[]){
 
         }
         close(a[1]);
+        wait(NULL);
         int b[2];
         if(pipe(b) == -1){
                 err(2,"error with pipe");
@@ -128,6 +129,7 @@ int main(int argc, char* argv[]){
         }
         close(a[0]);
         close(b[1]);
+        wait(NULL);
         int c[2];
         if(pipe(c) == -1){
                 err(2,"error with pipe");
@@ -150,6 +152,7 @@ int main(int argc, char* argv[]){
         }
         close(b[0]);
         close(c[1]);
+        wait(NULL);
         if(dup2(c[0],0) == -1){
                 err(4,"error with dup2");
         }
@@ -157,7 +160,7 @@ int main(int argc, char* argv[]){
                 err(5,"error with execlp");
         }
         close(c[0]);
-        wait(NULL);
+        //wait(NULL);
 
         exit(0);
 }
