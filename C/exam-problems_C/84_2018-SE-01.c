@@ -78,3 +78,86 @@ int main(int argc, char* argv[]){
     }
     return 0;
 }
+// --------------------------------
+#include <err.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+int main(int argc, char* argv[]){
+        if(argc != 2){
+                errx(1,"One parameter needed");
+        }
+        int a[2];
+        if(pipe(a) == -1){
+                err(2,"error with pipe");
+        }
+        pid_t p=fork();
+        if ( p <0){
+                err(3,"error with fork");
+        }
+        if( p== 0){
+                close(a[0]);
+                if(dup2(a[1],1) == -1){
+                        err(4,"error with dup2");
+                }
+                if(execlp("find","find",argv[1],"-type","f", "-printf", "%f %T@\n", (char*)NULL) == -1 ){
+                        err(5,"error with execlp");
+                }
+
+        }
+        close(a[1]);
+        int b[2];
+        if(pipe(b) == -1){
+                err(2,"error with pipe");
+        }
+        pid_t q=fork();
+        if (q < 0){
+                err(3,"error with fork");
+        }
+        if(q == 0){
+                close(b[0]);
+                if(dup2(a[0],0) == -1){
+                        err(4,"error with dup2");
+                }
+                if( dup2(b[1],1) == -1){
+                        err(4,"error with dup2");
+                }
+                if( execlp("sort","sort","-nr", "-k2", (char*)NULL) == -1){
+                        err(5,"error with execlp");
+                }
+        }
+        close(a[0]);
+        close(b[1]);
+        int c[2];
+        if(pipe(c) == -1){
+                err(2,"error with pipe");
+        }
+        pid_t t=fork();
+        if(t <0){
+                err(3,"error with fork");
+        }
+        if( t== 0){
+                close(c[0]);
+                if(dup2(b[0],0) == -1){
+                        err(4,"error with dup2");
+                }
+                if(dup2(c[1],1) == -1){
+                        err(4,"error with dup2");
+                }
+                if(execlp("cut", "cut", "-d", " ", "-f1", (char*)NULL) == -1){
+                        err(5,"error with execlp");
+                }
+        }
+        close(b[0]);
+        close(c[1]);
+        if(dup2(c[0],0) == -1){
+                err(4,"error with dup2");
+        }
+        if(execlp("head", "head", "-n", "1", (char*)NULL) == -1){
+                err(5,"error with execlp");
+        }
+        close(c[0]);
+        wait(NULL);
+
+        exit(0);
+}
