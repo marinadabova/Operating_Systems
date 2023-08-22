@@ -75,6 +75,122 @@ int main(int argc, char* argv[]) {
     close(fd);
     return 0;
 }
+
+
+//-----------------------
+//niq
+зад.73
+#include <stdint.h>
+#include <err.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <stdio.h>
+
+
+int main(int argc, char* argv[]){
+        if(argc < 3){
+                errx(1, "We need at least 2 arguments");
+        }
+
+        if(strlen(argv[1]) > 1){
+                errx(2, "Wrong format param 1");
+        }
+
+        int sec = argv[1][0] - '0';
+
+        if(sec < 0 || sec > 9){
+                errx(2, "Wrong format param 1");
+        }
+
+        int fd = open("run.log", O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
+    if(fd < 0){
+                err(3, "Error opening");
+        }
+
+        int cnt = 0;
+
+        while(1){
+
+                int start = 0;
+                int finish = 0;
+                int exit_status = 0;
+
+                pid_t p = fork();
+                if(p < 0){
+                        err(4, "Error fork");
+                }
+
+                if(p == 0){
+                        start = time(NULL);
+                        if(execvp(argv[2], argv + 2) < 0){
+                                err(5, "Error execvp");
+                        }
+                }
+
+                int status;
+                wait(&status);
+
+                finish = time(NULL);
+
+                if(WIFEXITED(status)){
+                        exit_status = WEXITSTATUS(status);
+                }
+                else{
+                        exit_status = 0;
+                }
+
+                dprintf(fd, "%d", start);
+
+        //      if(write(fd, &start, sizeof(start)) != sizeof(start)){
+        //              err(6, "Error writing");
+        //      }
+
+                if(write(fd, " ",1) != 1){
+                        err(6, "Error writing");
+                }
+
+                dprintf(fd, "%d", finish);
+
+//              if(write(fd, &finish, sizeof(finish)) != sizeof(finish)){
+//                      err(6, "Error writing");
+//              }
+
+                if(write(fd, " ", 1) != 1){
+                        err(6, "Error writing");
+                }
+
+                dprintf(fd, "%d", exit_status);
+
+        //      if(write(fd, &exit_status, sizeof(exit_status)) != sizeof(exit_status)){
+        //              err(6, "Error writing");
+        //      }
+
+                if(write(fd, "\n", 1) != 1){
+                        err(6, "Error writing");
+                }
+
+                int d = finish - start;
+
+                if(exit_status != 0 && d < sec){
+                        if(cnt == 1){
+                                close(fd);
+                                exit(0);
+                        }
+                        else
+                        {
+                                cnt = 1;
+                        }
+                }
+                else{
+                        cnt = 0;
+                }
+        }
+}
 /* Зад. 85 2019-SE-01 Напишете програма-наблюдател P, която изпълнява друга програма Q и я рестар-
 тира, когато Q завърши изпълнението си. На командния ред на P се подават следните параметри:
 • праг за продължителност в секунди – едноцифрено число от 1 до 9
