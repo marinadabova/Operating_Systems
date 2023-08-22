@@ -79,6 +79,7 @@ int main(int argc, char* argv[]){
     return 0;
 }
 // --------------------------------
+//resh ot 22.08- ima wait poveche - bi trqbvalo da e po-vqrno
 #include <err.h>
 #include <unistd.h>
 #include <stdlib.h>
