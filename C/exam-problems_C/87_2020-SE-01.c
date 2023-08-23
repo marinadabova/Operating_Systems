@@ -1,3 +1,75 @@
+//moeto si resh:
+#include <unistd.h>
+#include <err.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <stdint.h>
+
+int main(int argc,char* argv[]){
+        if(argc != 3){
+                errx(1,"We need 2 argumenst");
+        }
+        int a[2];
+        if(pipe(a) == -1){
+                err(2,"Error with pipe");
+        }
+        pid_t p=fork();
+        if (p <0 ){
+                err(3,"Error with fork");
+        }
+        if (p == 0){
+                close(a[0]);
+                if(dup2(a[1],1) == -1){
+                        err(4,"Error while dup2");
+                }
+                if(execlp("cat","cat",argv[1],(char*) NULL)== -1){
+                        err(5,"Error while execlp");
+                }
+        }
+        close(a[1]);
+
+        int fd=open(argv[2],O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
+        if(fd == -1){
+                err(6,"Error while opening file");
+        }
+
+        ssize_t r_bytes;
+        uint8_t b;
+
+        while( (r_bytes= read(a[0],&b,sizeof(b)))>0){
+                if(b == 0x55){
+                        continue;
+                }
+                else if( b== 0x7D){
+                        if(read(a[0],&b,sizeof(b)) <0){
+                                err(7,"Error while reading form pipe");
+                        }
+                        uint8_t originalB=b^0x20;
+                        if(originalB != 0x00 && originalB != 0x55 && originalB != 0xFF && originalB != 0x7D){
+                                errx(8,"Invalid file content");
+                        }
+                        if(write(fd,&originalB,sizeof(originalB)) != sizeof(originalB)){
+                                err(9,"Error while writing to file");
+                        }
+                }
+                 else{ //ima li nujda
+                        if(write(fd, &b, sizeof(b)) != sizeof(b)){
+                err(8,"error while writing");
+             }
+         }
+
+        }
+        if(r_bytes <0){
+                err(7,"Error while reading form pipe");
+        }
+        wait(NULL);
+        close(a[0]);
+        close(fd);
+
+        exit(0);
+}
+//................................
 #include <fcntl.h>
 #include <unistd.h>
 #include <err.h>
