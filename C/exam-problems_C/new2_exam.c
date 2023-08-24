@@ -13,17 +13,17 @@
 #define MAX_NUM_FDS 1024
 
 typedef struct {
-        int num_fds;
-        int fds[MAX_NUM_FDS];
+        int num_fds; //nomer na fd
+        int fds[MAX_NUM_FDS]; //pipes
 } fd_ctx_t;
 
 void init_ctx(fd_ctx_t* ctx) {
-        ctx->num_fds = 0;
+        ctx->num_fds = 0; //fd=0
 }
 
 void close_pipes(fd_ctx_t* ctx) {
         for (int i = 0; i < ctx->num_fds; i++) {
-                close(ctx->fds[i]);
+                close(ctx->fds[i]); //zatvarq pipes
         }
 }
 
@@ -41,13 +41,9 @@ pid_t spawn_dir_walker(char* dirname, int out_fd, fd_ctx_t* ctx) {
         }
         close_pipes(ctx);
 
-        execlp(
-                "find",
-                "find", dirname,
-                "-type", "f", "-not", "-name", "*.hash",
-                (char*)NULL
-        );
-        err(1, "could not exec find");
+        if(execlp("find","find", dirname,"-type", "f", "-not", "-name", "*.hash",(char*)NULL) < 0){
+                err(1, "could not exec find");
+        }
 }
 
 bool file_exists(char* filename) {
@@ -93,12 +89,9 @@ pid_t spawn_hasher(char* filename, fd_ctx_t* ctx) {
                 err(1, "could not dup");
         };
 
-        execlp(
-                "md5sum",
-                "md5sum", filename,
-                (char*)NULL
-        );
-        err(1, "could not exec find");
+        if(execlp("md5sum","md5sum", filename, (char*)NULL )<0){
+                err(1, "could not exec find");
+        }
 }
 
 void make_pipe(fd_ctx_t* ctx, int pfd[2]) {
