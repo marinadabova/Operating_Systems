@@ -56,8 +56,8 @@ int main(int argc, char* argv[]){
                 err(5,"error fork");
         }
         if(pid == 0){
-                close(p1[1]);
-                close(p2[0]);
+                close(p1[0]);
+                close(p2[1]);
 
                 for(int i=0;i<N;i++){
                         // Child process reads from p2
@@ -76,9 +76,9 @@ int main(int argc, char* argv[]){
                 }
         }
         else{
-                close(p2[0]);
                 close(p1[1]);
-
+                close(p2[0]);
+                
                 for(int i=0;i<N;i++){
                     // Parent process writes to stdout
                         if(write(1,&parent,5) != 5){
