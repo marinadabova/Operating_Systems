@@ -71,9 +71,10 @@ cat /etc/passwd | cut -d ':' -f 1 | tr a-z A-Z
 Изведете този ред, двата преди него, и трите след него.
 Изведете *само* реда, който се намира 2 реда преди реда, съдържащ информация за вашия потребител.
 
-grep "s62503" /etc/passwd
+grep "s62503" /etc/passwd  //cat /etc/passwd| grep "$(id -u)"
 grep "s62503" -B 2 /etc/passwd
-grep "s62503" -A 3 /etc/passwd
+grep "s62503" -A 3 /etc/passwd  //cat /etc/passwd| grep -B 2 -A 3 "$(id -u)"
+
 cat /etc/passwd |grep "s62503" -B 2| head -1
 
 13. (03-a-5001)Изведете колко потребители не изпозват /bin/bash за login shell според /etc/passwd
