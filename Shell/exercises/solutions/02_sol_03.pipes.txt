@@ -129,6 +129,9 @@ cat emp.data |awk 'NR==6{print $3}' //cat emp.data | awk 'END{ print $NF}'
 
 cat emp.data |awk 'NF>4{print $0}'
 cat emp.data |awk '$3>4{print $0}'
+
+cat emp.data | awk ' {count+=NF} END{ print count}'
+
 cat emp.data |awk '$1=="Beth" {count++} END {print count}'
 cat emp.data |awk 'BEGIN {cur_field=$3;cur_line=$0} $3>cur_field {cur_field=$3;cur_line=$0} END {print cur_field, cur_line}'
 cat emp.data | awk 'NF>0 {print $0}'  или   cat emp.data | awk 'NF>=1 {print $0}'    
