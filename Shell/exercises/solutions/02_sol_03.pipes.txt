@@ -132,14 +132,27 @@ cat emp.data |awk '$3>4{print $0}'
 
 cat emp.data | awk ' {count+=NF} END{ print count}'
 
-cat emp.data |awk '$1=="Beth" {count++} END {print count}'
+cat emp.data |awk '$1=="Beth" {count++} END {print count}' 
+//cat emp.data | awk ' /Beth/ {print $0}' 
+// cat emp.data | awk ' /Beth/ {print NR}'
+
 cat emp.data |awk 'BEGIN {cur_field=$3;cur_line=$0} $3>cur_field {cur_field=$3;cur_line=$0} END {print cur_field, cur_line}'
+//cat emp.data  | awk 'BEGIN {max=0;row=-1} {if(max<$3){max=$3;row=NR}} END  {print max,row} '
+
 cat emp.data | awk 'NF>0 {print $0}'  или   cat emp.data | awk 'NF>=1 {print $0}'    
+//cat emp.data | awk '{if(NF>0)print $0}'
+
 cat emp.data |awk 'length>17{print $0}' =  awk 'length($0)>17{print $0}' 
 cat emp.data | awk ' {print NF, $0}'
 cat emp.data | awk ' {print $2,$1}'
-cat emp.data | awk ' {print $2,$1,$3}'
+
+cat emp.data | awk ' {print $2,$1,$3}' 
+//cat emp.data  | awk '{temp=$1;$1=$2;$2=temp}{print}'
+//cat emp.data  | awk '{temp=$1;$1=$2;$2=temp; print}'
+
 cat emp.data | awk ' {print NR,$2,$3}'
+//cat emp.data  | awk '{$1=NR}{print $0}'
+
 cat emp.data | awk ' {print $1,$3}'
 cat emp.data | awk '{print $2+$3}'
 cat emp.data | awk 'BEGIN{sum=0}{sum+=$2+$3}END{print sum}'
@@ -221,10 +234,14 @@ awk '{printf "%.2f\n", $2 + $3}' emp.data
 
 # - сумата на второ и трето поле от всеки ред
 awk 'BEGIN {sum = 0} {sum += $2 + $3} END {print sum}' emp.data
+
+
+-------------------
 18. (03-b-0300) Намерете само Group ID-то си от файлa /etc/passwd.
 cat /etc/passwd |egrep "s62503" |cut -d ':' -f 4
 
 май има др начин с  egrep "$(id -g)"
+cat /etc/passwd | grep "$(id -u)" | cut -d':' -f 4
 
 19. (03-b-3400) Колко коментара има във файла /etc/services ? Коментарите се маркират със символа #, след който всеки символ на реда се счита за коментар.
 
@@ -232,12 +249,14 @@ cat /etc/services |egrep -c "#"
 cat /etc/services | egrep "^.*#.*$" | wc -l
 cat /etc/services |egrep -c "^.*#.*$"
 
+!! Пише че всеки символ е коментар -  cat /etc/services | grep "#" |cut -d# -f2 | tr -d '\n'| wc -c
 
 20. (03-b-3500)Колко файлове в /bin са 'shell script'-oве?
  (Колко файлове в дадена директория са ASCII text?)
 file  /bin/* |egrep -c 'shell script'
 find /usr/bin -type f -executable 2>/dev/null | xargs -I {} -n 1 file {} | egrep -c "shell script" 
 
+find /bin | xargs -I{} file {} | grep "ASCII text executable" | wc -l
 
 ?21. (03-b-3600)Направете списък с директориите на вашата файлова система, до които нямате достъп.
  Понеже файловата система може да е много голяма, търсете до 3 нива на дълбочина.
@@ -271,7 +290,12 @@ file3:
 14
 1
 52
-
+------------
+mkdir -p dir5
+echo -e '1\n2\n3' > dir5/f1
+echo -e 's\na\nd\nf' > dir5/f2
+echo -e '3\n2\n1\n45\n42\n14\n1\n52' > dir5/f3
+-----------
 Изведете на екрана:
 	* статистика за броя редове, думи и символи за всеки един файл
 -find ~/dir5/ -type f | xargs wc -wlm
@@ -320,12 +344,16 @@ cat file1 file2 file3 | grep -o '.' | sort | uniq -c | sort -nrk 1
 cat file1|sed 's/[A-Z]/\L&/g' file1> file2
 
 ??28. (03-b-5200) Намерете броя на символите, различни от буквата 'а' във файла /etc/passwd
-cat /etc/passwd | tr -d a | wc -m 	-tyka a-tata se triqt
-
+// nee-> cat /etc/passwd | tr -d a | wc -m 	-tyka a-tata se triqt
+cat /etc/passwd | sed 's/а//g' | wc -m
 
 29. (03-b-5300) Намерете броя на уникалните символи, използвани в имената на потребителите от
 /etc/passwd.
-cat /etc/passwd | cut -d ':' -f1 |grep -o "." | sort| uniq -c| awk '{print $1,$2}'| egrep -c "^1 "
+cat /etc/passwd | cut -d ':' -f1 |grep -o "." | sort| uniq -c| awk '{print $1,$2}'| egrep -c "^1 " //ne
+//
+cat /etc/passwd | cut -d ':' -f5 | cut -d ',' -f1 | grep -o . | sort -u | wc -l
+# or
+cat /etc/passwd | cut -d ':' -f5 | cut -d ',' -f1 | sed 's/./&\n/g' | sort | uniq | wc -l
 
 30. (03-b-5400) Отпечатайте всички редове на файла /etc/passwd, които не съдържат символния низ 'ов'.
 
@@ -359,6 +387,10 @@ find /usr/include -type f -name "*.h" |wc -l
 find /usr/include -type f -name "*.h" |xargs wc -l
 find /usr/include -type f -name "*.h" -exec wc -l {} \;
 
+---
+find /usr/include -type f -regextype egrep -regex ".*\.[ch]" | wc -l
+ cat $(find /usr/include -type f -regextype egrep -regex ".*\.[ch]") | wc -l
+
 
 35. (03-b-7500) Даден ви е ASCII текстов файл - /etc/services. Отпечатайте хистограма на 10-те най-често срещани думи.
 Дума наричаме непразна последователност от букви. Не правим разлика между главни и малки букви.
@@ -368,6 +400,8 @@ find /usr/include -type f -name "*.h" -exec wc -l {} \;
 cat /etc/services | egrep -o "\s*\w+" | sed 's/ //g' | sort | uniq -c | awk '{print $1,$2}' | sort -nrk 1 | head -n 10
 Може и така, но дава warning за *
 cat /etc/services |egrep -o "*\w+"|sort| uniq -c |awk '{print$1,$2}'| sort -nr -k1 |head
+
+cat /etc/services | grep -o '[a-zA-Z]*'  | sort | uniq -c | sort -nr | head
 
 36. (03-b-8000) Вземете факултетните номера на студентите (описани във файла
 <РЕПО>/exercises/data/mypasswd.txt) от СИ и ги запишете във файл si.txt сортирани.
@@ -379,7 +413,7 @@ cat mypasswd.txt |grep "/home/SI" |cut -d ':' -f1 |sort -n|egrep "[0123456789]" 
 
 
 
-?37. (03-b-8500) а всяка група от /etc/group изпишете "Hello, <група>", 
+?37. (03-b-8500) За всяка група от /etc/group изпишете "Hello, <група>", 
 като ако това е вашата група, напишете "Hello, <група> - I am here!".
 
 cat /etc/group | cut -d ':' -f 1 | awk -v var=$(groups) -F ":" '{if ($1 == var) printf "Hello, %s - this is me!\n",$1; else printf "Hello, %s!\n",$1}'
