@@ -569,6 +569,7 @@ Abc..123@example.com
 just"not"right@example.com
 this\ is"really"not\allowed@example.com
 
+cat emails.txt | grep '^[_0-9a-zA-Z][a-zA-Z0-9_.-]*[a-zA-Z0-9_]@[a-z0-9A-Z][a-zA-Z0-9_.-]*.[a-zA-Z]*$' | grep -v '.*[.][.].*'
 
 55. (03-b-9400) Посредством awk, използвайки emp.data (от 03-a-6000.txt) за входнни данни,
 изведете:
@@ -576,7 +577,7 @@ this\ is"really"not\allowed@example.com
 - всеки ред, като полетата са в обратен ред
 
 (Разгледайте for цикли в awk)
-
+cat emp.data | awk '{for (i=NF;i>=1;i-=1) printf "%s\t", $i} {printf "\n"}'
 56. (03-b-9500) Копирайте <РЕПО>/exercises/data/ssa-input.txt във вашата home директория.
 Общият вид на файла е:
 
@@ -618,3 +619,4 @@ x-yyyyyy zz ww
 	- yyyyyy е името на диска
 	- zz е current temperature
 	- ww е max temperature
+cat ssa-input.txt | awk '{if ($1=="Array") array = $2} {if ($1=="physicaldrive") drive = $2} {if ($2=="Temperature" && $1=="Current") ct = $4;} {if  ($2=="Temperature" && $1=="Maximum") {mt = $4; printf "%s-%s %s %s",array,drive,ct,mt; printf"\n"}}'
