@@ -418,7 +418,9 @@ cat mypasswd.txt |grep "/home/SI" |cut -d ':' -f1 |sort -n|egrep "[0123456789]" 
 
 cat /etc/group | cut -d ':' -f 1 | awk -v var=$(groups) -F ":" '{if ($1 == var) printf "Hello, %s - this is me!\n",$1; else printf "Hello, %s!\n",$1}'
 
-
+-------------
+cat /etc/group | cut -d : -f 1 | sed -E 's/^.*$/Hello, &/g'
+cat /etc/group | awk -F ':' '{print "Hello, " $1}'
 ?38. (03-b-8600) Shell Script-овете са файлове, които по конвенция имат разширение .sh. Всеки
 такъв файл започва с "#!<interpreter>" , където <interpreter> указва на
 операционната система какъв интерпретатор да пусне (пр: "#!/bin/bash",
@@ -435,6 +437,7 @@ find / -type f -name "*.sh" 2>/dev/null | xargs cat 2>/dev/null | egrep "^#.*" |
 ?2. (*) Изведете имената на съответните групи.
 Hint: /etc/passwd
 
+ cat /etc/passwd | cut -d ':' -f 4 | sort |uniq -c | sort -nr| head -5 | awk '{print $2}'  | xargs -I {} grep ":{}:" /etc/group | cut -d ":" -f 1
 
 
 40. (03-b-9000)Направете файл eternity. Намерете всички файлове, намиращи се във вашата home
@@ -449,23 +452,38 @@ cp /srv/fmi-os/exercises/data/population.csv ~
 
 42. (03-b-9051) Използвайки файл population.csv, намерете колко е общото население на света
 през 2008 година. А през 2016?
- cat population.csv  |grep '2008'|cut -d ',' -f4 |awk '{total+=$1} END {print total}'
+ cat population.csv  |grep ',2008,'|cut -d ',' -f4 |awk '{total+=$1} END {print total}'
  cat population.csv  |grep '2008' |awk -F',' '{total+=$4} END {print total}'
 
 
 43. (03-b-9052) Използвайки файл population.csv, намерете през коя година в България има най-много население.
 cat population.csv  | egrep "Bulgaria"| sort -t ',' -k 4 -nr | head -1 | cut -d ',' -f 3
+----
+cat population.csv | egrep "Bulgaria," | awk -F ',' 'BEGIN{ max=0;year=-1} {if(max <$4) {max=$4 ;year=$3}}END{ print year}'
+cat population.csv | awk -F ',' 'BEGIN{year=0; max=0} $(NF-2)=="BGR"{if(max<$(NF)){max=$NF; year=$(NF-1)}} END{print year}'
 
 44. (03-b-9053) Използвайки файл population.csv, намерете коя държава има най-много население през 2016. А коя е с най-малко население?
 (Hint: Погледнете имената на държавите)
- cat population.csv | egrep '2016' | sort -t ',' -k 4 -nr | head -1 | cut -d ',' -f 1
+ cat population.csv | egrep '2016' | sort -t ',' -k 4 -nr | head -1 | cut -d ',' -f 1 // -NEEE
 cat population.csv | egrep '2016' | sort -t ',' -k 4 -nr | tail -1 | cut -d ',' -f 1
+#Използвайки файл population.csv, намерете коя държава има най-много население през 2016.
+grep ",2016," population.csv | cut -d '"' -f3 | sort -k 4n -t ',' | tail -n 1 | cut -d ',' -f2 | xargs -I{} grep {} population.csv | head -n 1 | rev | cut -d ',' -f4 | rev | tr -d '"'
 
+# А коя е с най-малко население?
+grep ",2016," population.csv | cut -d '"' -f3 | sort -k 4n -t ',' | head -n 1 | cut -d ',' -f2 | xargs -I{} grep {} population.csv | head -n 1 | rev | cut -d ',' -f4 | rev | tr -d '"'
+
+#or
+
+cat population.csv | grep ",2016," | awk -F ',' '{print $0 ": " $NF}' | sort -k 2 -n -r -t ':' | cut -d ':' -f1 | awk -F ',' '{for (i=1; i < NF-2;i++) {printf "%s, ", $i;} printf "\n"}'| sed 's/"//g' | sed -E 's/(.*),/\1/g' | head -n 1
+
+#(Hint: Погледнете имената на държавите)
 
 45. (03-b-9054) Използвайки файл population.csv, намерете коя държава е на 42-ро място по
 население през 1969. Колко е населението й през тази година?
-cat population.csv  |grep "1969" |sort -t ',' -nr -k4| head -42| tail -1
+cat population.csv  |grep "1969" |sort -t ',' -nr -k4| head -42| tail -1  // NEE
 
+cat population.csv | egrep ",1969," | awk -F ',' '{print $0 ": " $(NF)}' | sort -t ':' -k2n |cut -d ':' -f 1 | head -n 42 | tail -1 | rev| cut -d , -f 4 | rev
+cat population.csv | egrep ",1969," | awk -F ',' '{print $0 ": " $(NF)}' | sort -t ':' -k2n | cut -d ':' -f1 |head -n 42 | tail -n 1| awk -F ',' '{for (i=1; i< (NF-2);i+=1) printf "%s,", $i} {print " " $(NF)}'
 46. (03-b-9100) В home директорията си изпълнете командата
 curl -o songs.tar.gz "http://fangorn.uni-sofia.bg/misc/songs.tar.gz"
 
@@ -476,20 +494,33 @@ tar xfv songs.tar.gz -C ./songs
 48. (03-b-9102) Да се изведат само имената на песните.
 
  find . -type f |cut -d '-' -f2| cut -c 2-| cut -d '(' -f1
+find songs -iname '*.ogg' | sed -E 's/.*- (.*)\(.*/\1/g'
+find . -type f | cut -d '-' -f 2 | cut -d '(' -f 1 | tr -d ' '
 
 49. (03-b-9103) Имената на песните да се направят с малки букви, да се заменят спейсовете с
 долни черти и да се сортират.
 find . -type f |cut -d '-' -f2| cut -c 2-| cut -d '(' -f1 |tr 'A-Z' 'a-z' |sed 's/ /_/g'| sort
+find . -type f |cut -d '-' -f2| cut -c 2-| cut -d '(' -f1 | tr A-Z a-z| tr ' ' '_' | sort
 
+--
+find songs -iname '*.ogg' | sed -E 's/(.*)\/(.*) - (.*) \((.*), (.*)\).(.*)/\3/g' | sed -E 's/[A-Z]/\L&/g' | sed -E 's/ /_/g' | sort
+
+#or
+
+find songs -mindepth 1 -printf "%f\n" | sed -E 's/.* - (.*) \(.*/\1/g' | sed -E 's/[A-Z]/\L&/g' | sed -E 's/ /_/g' | sort
 50. (03-b-9104) Да се изведат всички албуми, сортирани по година.
  find . -type f |cut -d '-' -f2 |cut -c 2- |cut -d '(' -f2 | cut -d ')' -f1 |sed 's/,/ /g' |sort -nrk2
 find . -type f |grep -o '(.*)'| cut -c 2-| tr ')' ' '| sort -t ',' -k2 -nr
+
+// gore -ne 
+---
+find . -type f  | cut -d '(' -f 2 | cut -d ')' -f 1 | sort -t ',' -k 2 | uniq | cut -d ',' -f 1
 
 51. (03-b-9105) Да се преброят/изведат само песните на Beatles и Pink.
 find . -type f | cut -c 3-  |egrep 'Beatles -|Pink -'
 find . -type f | cut -c 3-  |egrep 'Beatles -|Pink -' |sed 's/.ogg//g'
 
-
+find songs | grep -E "Pink -|Beatles -" | cut -d '/' -f2 | sort | wc -l
 52. (03-b-9106)Да се направят директории с имената на уникалните групи. За улеснение, имената
 от две думи да се напишат слято:
 Beatles, PinkFloyd, Madness
@@ -500,7 +531,8 @@ find . -type f | cut -c 3-  |sed 's/.ogg//g' |cut -d '-' -f1| sort |uniq |tr -d 
 текущата директория, които имат същите права за достъп както най-големият файл
 в /etc директорията.
 find . -perm $(find /etc -type f -printf "%s %m %p \n" 2>/dev/null |sort -nk1 |tail -1| cut -d ' ' -f2) -print 2>/dev/null |xargs stat
-
+-------------
+find ~ -perm $(find /etc -type f -printf "%m %s\n" 2>/dev/null | sort -nr -t ' ' -k 2 | head -1 | cut -d ' ' -f 1)
 
 54. (03-b-9300) Дадени са ви 2 списъка с email адреси - първият има 12 валидни адреса, а
 вторията има само невалидни. Филтрирайте всички адреси, така че да останат
