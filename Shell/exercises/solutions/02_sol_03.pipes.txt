@@ -322,10 +322,12 @@ s62503@astero:~$ find ~/dir5/ -type f | xargs wc -lwm
 cat file2 |tr 'a-z' 'A-Z'
  inplace -> директно във файла , с tar не е
 sed -i 's/[a-z]/\U&/g' file2
-
+sed -i 's/[a-z]/\u&/g' file2
+\U 			vs 	\u
+действа от нач до края		действа върху първия символ
 24. (03-b-4002)Във file3 (inplace) изтрийте всички "1"-ци.
 sed -i '/1/d' file3
-
+sed -i 's/1//g' file3
 25. (03-b-4003) Изведете статистика за най-често срещаните символи в трите файла.
 
 grep -o . file{1,2,3} |cut -d ':' -f2|sort |uniq -c | sort -nrk 1
@@ -347,6 +349,8 @@ cat file1|sed 's/[A-Z]/\L&/g' file1> file2
 // nee-> cat /etc/passwd | tr -d a | wc -m 	-tyka a-tata se triqt
 cat /etc/passwd | sed 's/а//g' | wc -m
 
+cat/etc/passwd | sed 's/./&\n/g'|grep -v "a"| wc -l -> това е от упр с Радо
+
 29. (03-b-5300) Намерете броя на уникалните символи, използвани в имената на потребителите от
 /etc/passwd.
 cat /etc/passwd | cut -d ':' -f1 |grep -o "." | sort| uniq -c| awk '{print $1,$2}'| egrep -c "^1 " //ne
@@ -354,6 +358,9 @@ cat /etc/passwd | cut -d ':' -f1 |grep -o "." | sort| uniq -c| awk '{print $1,$2
 cat /etc/passwd | cut -d ':' -f5 | cut -d ',' -f1 | grep -o . | sort -u | wc -l
 # or
 cat /etc/passwd | cut -d ':' -f5 | cut -d ',' -f1 | sed 's/./&\n/g' | sort | uniq | wc -l
+
+ head /etc/passwd | cut -d ':' -f 5|sed 's/./&\n/g'|tr -d '\n'|sed 's/./&\n/g'
+
 
 30. (03-b-5400) Отпечатайте всички редове на файла /etc/passwd, които не съдържат символния низ 'ов'.
 
@@ -364,6 +371,8 @@ cat /etc/passwd | egrep -v 'ов'
 
 cat /etc/passwd |head -46 |tail -n +28 |cut -d ':' -f3 | awk '{print$0%10}'
 cat /etc/passwd | head -n 46 | tail -n +28 | cut -d ':' -f 3 | grep -o ".$"
+
+cat  /etc/passwd |cut -d ':' -f 3| head -n 46 | tail +28 | sed -E 's/(.*)(.)/\2/g'
 
 32. (03-b-6700) Отпечатайте правата (permissions) и имената на всички файлове, до които имате
 read достъп, намиращи се в директорията /tmp. (hint: 'man find', вижте -readable)
@@ -421,14 +430,21 @@ cat /etc/group | cut -d ':' -f 1 | awk -v var=$(groups) -F ":" '{if ($1 == var) 
 -------------
 cat /etc/group | cut -d : -f 1 | sed -E 's/^.*$/Hello, &/g'
 cat /etc/group | awk -F ':' '{print "Hello, " $1}'
-?38. (03-b-8600) Shell Script-овете са файлове, които по конвенция имат разширение .sh. Всеки
+
+38. (03-b-8600) Shell Script-овете са файлове, които по конвенция имат разширение .sh. Всеки
 такъв файл започва с "#!<interpreter>" , където <interpreter> указва на
 операционната система какъв интерпретатор да пусне (пр: "#!/bin/bash",
 "#!/usr/bin/python3 -u").
 
 Намерете всички .sh файлове в директорията `/usr` и нейните поддиректории, и
 проверете кой е най-често използваният интерпретатор.
+
 find / -type f -name "*.sh" 2>/dev/null | xargs cat 2>/dev/null | egrep "^#.*" | egrep "#!" | sort | uniq -c | sort -nrk 1 | head -n 1
+
+----от радо:
+find /usr -type f -regex ".*\.sh" -exec head -1 '{}' \;
+
+find /usr -type f -regex ".*\.sh" |xargs head -n1
 
 39. (03-b-8700)1. Изведете GID-овете на 5-те най-големи групи спрямо броя потребители, 
 за които съответната група е основна (primary).
