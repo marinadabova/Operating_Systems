@@ -20,5 +20,5 @@ if [[ ${count1} -gt ${count2} ]] ;then
 elif [[ ${count2} -gt ${count1} ]] ;then
         cat ${2}| cut -d ' ' -f 4- |sort > $2.songs
 else
-        cat "No winner"
+        echo "No winner"
 fi
