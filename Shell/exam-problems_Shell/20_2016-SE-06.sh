@@ -33,4 +33,4 @@ if [[ ! -f ${1} ]]; then
         exit 2
 fi
 
-cat ${1} | cut -d '-' -f 2- | grep -n " " |sed 's/:/./g' | sort -t '.' -k 2
+cat ${1} | cut -d '-' -f 2- | grep -n " " |sed 's/:/. /g' | sort -t '.' -k 2
