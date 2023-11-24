@@ -4,7 +4,31 @@
 #б) при липса на втори параметър – всички symlink-ове с несъществуващ destination (счупени symlink-ове).
 #Забележка:За удобство приемаме, че ако има подаден втори параметър, то той е число.
 
+#########################
+# ot ypr
+#!/bin/bash
 
+if [ $# -lt 1 -o $# -gt 2 ]; then
+        echo "Parameters should be one or 2"
+        exit 1
+fi
+if [ ! -d $1 ]; then
+        echo "Should be dir"
+        exit 2
+fi
+
+if [ -e $2 ]; then
+        echo "a"
+        find $1 -type l -printf "%p %n\n" | awk -v num=${2} '$2 > num {print $1}'
+else
+        echo "b"
+        find $1 -type l -printf "%p %Y\n" | grep " N$"| cut -d ' ' -f 1
+
+        #find $1 -xtype l | cut -d ' ' -f 1
+        #find -L $1| cut -d ' ' -f 1
+fi
+
+##################################
 #!/bin/bash
 
 if [[ ! -d $1 ]] ; then
