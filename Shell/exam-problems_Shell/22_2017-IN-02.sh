@@ -14,6 +14,59 @@
 #root 3 0.0 0.0 0 0 ? S 00:00:01 [ksoftirqd/0]
 #root 5 0.0 0.0 0 0 ? S< 00:00:00 [kworker/0:0H]
 
+
+###############
+#ot ypr
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+    echo "Wrong arguments are passed"
+    exit 1
+fi
+
+if ! cat /etc/passwd | cut -d: -f1 |grep -q -F "${1}" ; then
+        echo "ERROR"
+        exit 2
+fi
+#if [ "$(whoami)" != "root" ]; then #kavichkite -> ako ima prazen string shte grumne
+#       exit  #nqma nujda ot nomer
+#fi
+
+FOO=${1}
+FOOCOUNT=$(ps -u $FOO -o time= | wc -l)
+
+for U in $(cat /etc/passwd | cut -d: -f 1); do
+        UPCOUNT=$(ps -u $U -o time= |wc -l)
+        if [ "${UPCOUNT}" -gt "${FOOCOUNT}" ]; then
+                echo "$U"
+        fi
+
+done
+totalsec=0
+count=0
+while read HOURS MINUTES SECONDS ; do
+        sec=$(echo "3600*$HOURS +60*$MINUTES + $SECONDS" |bc)
+        totalsec=$(($totalsec + $sec))
+        count=$(($count +1))
+done< <(ps -e -o time=| tr ':' ' ')
+
+
+echo $(echo "scale=2; $totalsec / $count" | bc)
+# posl podtochka
+
+#c/
+
+#double_avg=$(echo "$avg_time *$avg_time" |bc)
+#echo "$double_avg"
+
+ps -u $1 -o user= | while read user; do
+        user_time=$(ps -u $1 -o time= | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }')
+if [[ $(echo "$user_time > 2*$avg_time" | bc -l) ]]; then
+                #kill -KILL $(ps -u $1 -o pid=)
+                echo "killing"
+        fi
+done
+######################
 #!/bin/bash
 
 if [[ $# -ne 1 ]]; then
