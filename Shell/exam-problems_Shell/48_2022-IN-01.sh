@@ -18,6 +18,47 @@
 #dir2/c/d
 #dir2/c/.bar.swp
 
+
+#!/bin/bash
+
+if [ $# -ne 2 ];then
+        echo "Wrong numb of arg"
+        exit 1
+fi
+if [ ! -d $1 ]; then
+        echo "first arg should be dir"
+        exit 2
+fi
+if [ ! -d $2 ]; then
+        echo "first arg should be dir"
+        exit 2
+fi
+DIR2=$2
+
+checkDir=$(find $2 -maxdepth 0 -empty)
+if [ -z $checkDir ]; then
+        echo "Dir should be empty"
+        exit 3
+fi
+
+#/dir1/c/.bar.swp  - sled find imame c/.bar.swp
+while read file; do
+        name=$(basename "$file" ) # .bar.swp
+        dir=$(dirname "$file")    # c
+
+        if [[ $name =~ ^\..*\.swp$ ]] ; then
+                nameswp=$(echo "$name" | sed -E "s/^(\.)(.*)(\.swp)$/\2/g")
+                allNames=$(echo "$(find $1 -type f -printf "%P\n")" |egrep "$nameswp$")
+                if [ ! -z $allNames ]; then
+                        continue
+                fi
+        fi
+        mkdir -p "$2"/"$dir"
+        cp "$1"/"$file" "$2"/"$dir"
+
+done< <(find $1 -type f -printf "%P\n")
+
+______________________________
 #!/bin/bash
 
 if [[ $# -ne 2 ]]; then
