@@ -92,7 +92,84 @@ int main(int argc, char* argv[]){
     }
     //exit(0);
 }
+//n 
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
 
+
+int main(int argc, char* argv[]){
+        const char* cmd = "echo";
+
+        if(argc == 2){
+                if(strlen(argv[1]) > 4){
+                        errx(1, "Wrong format command");
+                }
+
+                cmd = argv[1];
+        }
+
+        int ready = 0;
+        char c;
+        int change = 0;
+        char arr[2][5];
+        int i = 0;
+        int notFinish = 0;
+        while(read(0, &c, sizeof(c)) > 0){
+                if((c == 0x20 || c == 0x0A) && (change == 0)){
+                        change = 1;
+                        i = 0;
+                        continue;
+                }
+
+                if((c == 0x20 || c == 0x0A) && (change == 1)){
+                        ready = 1;
+                }
+
+                if(ready == 0){
+
+                        if(i == 4){
+                                errx(2, "Wrong format niz");
+                        }
+
+                        arr[change][i] = c;
+                        notFinish = 1;
+                        i++;
+                }
+                else
+                {
+                        pid_t p = fork();
+                        if(p < 0){
+                                err(3, "Error fork");
+                        }
+
+                        if(p == 0){
+                                if(execlp(cmd, cmd, arr[0], arr[1], (char*)NULL) < 0){
+                                        err(4, "Error exec");
+                                }
+                        }
+                        wait(NULL);
+                        change = 0;
+                        ready = 0;
+                        i = 0;
+                        notFinish = 0;
+                        for(int j = 0; j < 4; j++){
+                                arr[0][j] = '\0';
+                                arr[1][j] = '\0';
+                        }
+                }
+        }
+
+        if(notFinish == 1){
+                if(execlp(cmd, cmd, arr[0], (char*)NULL) < 0){
+                        err(4, "Error exec");
+                }
+        }
+
+        exit(0);
+}
 /*Зад. 83 2017-IN-02 Напишете програма на C, която приема незадължителен параметър – име на ко-
 манда. Ако не е зададена команда като параметър, да се ползва командата echo. Максималната
 допустима дължина на командата е 4 знака.
